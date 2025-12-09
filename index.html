@@ -17,6 +17,7 @@
             --radius: 12px;
             --btn-radius: 50px;
             --danger: #ff4444;
+            --success: #4CAF50;
         }
 
         * {
@@ -149,6 +150,54 @@
             transition: width 0.3s ease-out;
         }
 
+        /* --- NOTIFICATIONS (NEW) --- */
+        #notification-area {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 500;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .notification-toast {
+            background: rgba(30, 30, 36, 0.95);
+            border: 1px solid var(--text-color);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            border-radius: 15px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            animation: slideDown 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, fadeOut 0.5s ease-in 3s forwards;
+            backdrop-filter: blur(5px);
+        }
+        
+        .notif-icon { font-size: 2.2rem; }
+        .notif-content { text-align: left; flex: 1; }
+        .notif-title { 
+            color: var(--text-color); 
+            font-weight: 800; 
+            font-size: 1.1rem; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+        }
+        .notif-desc { color: #ddd; font-size: 0.9rem; font-weight: 500; }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            to { opacity: 0; transform: translateY(-20px); pointer-events: none; }
+        }
+
         /* --- MENU PRINCIPALE --- */
         #main-menu {
             position: absolute;
@@ -173,7 +222,7 @@
             background: linear-gradient(to bottom, #FFD700, #FFA500);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
             text-transform: uppercase;
             letter-spacing: 2px;
             filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.4));
@@ -189,7 +238,7 @@
             font-size: 1.3rem;
             border-radius: var(--btn-radius);
             cursor: pointer;
-            margin: 10px;
+            margin: 8px;
             width: 85%;
             max-width: 320px;
             font-weight: 800;
@@ -223,6 +272,33 @@
         .menu-btn.expert {
             background: linear-gradient(135deg, #ff4e50, #f9d423);
             color: #1a1a2e;
+        }
+
+        /* Pulsanti Extra Menu (Stats, Obiettivi) */
+        .extra-btn-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .extra-menu-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--text-color);
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .extra-menu-btn:hover {
+            background: rgba(255,215,0,0.2);
+            transform: scale(1.1);
         }
 
         /* Pulsante Settings nel Menu */
@@ -476,7 +552,7 @@
         #powerups-container {
             display: flex;
             justify-content: center;
-            gap: 20px;
+            gap: 15px;
             margin-top: 15px;
             width: 90vw;
             max-width: 400px;
@@ -486,20 +562,27 @@
             background: linear-gradient(145deg, #2a2a35, #1e1e24);
             border: 1px solid #444;
             border-radius: 15px;
-            padding: 8px 15px;
+            padding: 8px 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
             color: #ccc;
             cursor: pointer;
             transition: all 0.2s;
-            width: 100px;
+            width: 80px;
             position: relative;
             overflow: hidden;
         }
 
         .powerup-btn:active {
             transform: scale(0.95);
+        }
+        
+        /* Disabilita per expert */
+        .powerup-btn.disabled {
+            opacity: 0.3;
+            pointer-events: none;
+            filter: grayscale(1);
         }
 
         .powerup-btn.affordable {
@@ -526,10 +609,10 @@
         }
 
         .powerup-cost {
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             display: flex;
             align-items: center;
-            gap: 3px;
+            gap: 2px;
             color: #888;
         }
         
@@ -543,7 +626,7 @@
             align-items: center;
             width: 90vw;
             max-width: 400px;
-            height: 120px; /* Reduced slightly to fit powerups */
+            height: 120px; 
             margin-top: 10px;
         }
 
@@ -577,8 +660,8 @@
             box-shadow: inset 0 2px 4px rgba(255,255,255,0.4);
         }
 
-        /* Modals: Game Over, Pause, Settings */
-        #game-over-modal, #pause-modal, #settings-modal {
+        /* Modals: Game Over, Pause, Settings, Stats, Achievements */
+        .modal {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(18, 18, 18, 0.95);
@@ -593,19 +676,21 @@
             transition: opacity 0.4s ease;
         }
 
-        #game-over-modal.visible, #pause-modal.visible, #settings-modal.visible {
+        .modal.visible {
             opacity: 1;
             pointer-events: all;
         }
 
         .modal-content {
             background: #232323;
-            padding: 40px;
+            padding: 30px;
             border-radius: 30px;
             text-align: center;
             border: 1px solid rgba(255, 215, 0, 0.2);
             width: 85%;
-            max-width: 350px;
+            max-width: 380px;
+            max-height: 85vh;
+            overflow-y: auto;
             box-shadow: 0 20px 60px rgba(0,0,0,0.6);
             transform: scale(0.9);
             transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -618,17 +703,16 @@
         .modal-title {
             color: var(--text-color); 
             margin: 0 0 10px 0;
-            font-size: 2.2rem;
+            font-size: 2rem;
             text-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
             text-transform: uppercase;
         }
         
         #game-over-reason {
             color: #FFA500;
-            font-size: 1.1rem;
+            font-size: 1rem;
             margin-bottom: 20px;
             font-weight: 600;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
         .modal-btn {
@@ -649,6 +733,60 @@
         .modal-btn:active {
             transform: scale(0.96);
         }
+        
+        /* Stats & Achievements Lists */
+        .stats-list, .achievements-list {
+            text-align: left;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        /* Categorie Headers */
+        .category-header {
+            background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.1), transparent);
+            color: var(--text-color);
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 8px 0;
+            margin-top: 20px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid var(--text-color);
+            font-size: 1.1rem;
+            text-align: center;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            color: #ccc;
+        }
+        
+        .stat-val { color: var(--text-color); font-weight: bold; }
+        
+        .achievement-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            border: 1px solid transparent;
+        }
+        
+        .achievement-item.unlocked {
+            border-color: var(--success);
+            background: rgba(76, 175, 80, 0.1);
+        }
+        
+        .ach-icon { font-size: 1.5rem; margin-right: 10px; opacity: 0.5; }
+        .unlocked .ach-icon { opacity: 1; }
+        
+        .ach-info { flex-grow: 1; }
+        .ach-title { font-weight: bold; color: #fff; font-size: 0.9rem; }
+        .ach-desc { font-size: 0.75rem; color: #888; }
+        .ach-status { font-size: 1.2rem; }
 
         /* Settings Style */
         .setting-row {
@@ -733,6 +871,9 @@
 
     <!-- Particles Layer -->
     <div id="particles-container"></div>
+    
+    <!-- Area Notifiche (TOAST) -->
+    <div id="notification-area"></div>
 
     <!-- Intro Overlay -->
     <div id="intro-overlay">
@@ -753,6 +894,11 @@
         <button class="menu-btn" onclick="startGame('classic')" data-lang-key="btn_classic">Classica</button>
         <button class="menu-btn secondary" onclick="startGame('time')" data-lang-key="btn_time">A Tempo ⏱️</button>
         <button class="menu-btn expert" onclick="startGame('expert')" data-lang-key="btn_expert">Esperto 🔥</button>
+        
+        <div class="extra-btn-container">
+            <button class="extra-menu-btn" onclick="openStats()">📊</button>
+            <button class="extra-menu-btn" onclick="openAchievements()">🏆</button>
+        </div>
     </div>
 
     <!-- UI Gioco -->
@@ -798,11 +944,15 @@
         <!-- Generato via JS -->
     </div>
 
-    <!-- NUOVA SEZIONE: Power Ups -->
+    <!-- POWER UPS (3 Buttons) -->
     <div id="powerups-container" style="visibility: hidden;">
         <button class="powerup-btn" id="btn-rotate" onclick="usePowerup('rotate')">
             <div class="powerup-icon">🔄</div>
             <div class="powerup-cost">20 🪙</div>
+        </button>
+        <button class="powerup-btn" id="btn-reroll" onclick="usePowerup('reroll')">
+            <div class="powerup-icon">🎲</div>
+            <div class="powerup-cost">50 🪙</div>
         </button>
         <button class="powerup-btn" id="btn-bomb" onclick="usePowerup('bomb')">
             <div class="powerup-icon">💣</div>
@@ -815,7 +965,7 @@
     </div>
 
     <!-- Modal Game Over -->
-    <div id="game-over-modal">
+    <div id="game-over-modal" class="modal">
         <div class="modal-content">
             <h1 class="modal-title" data-lang-key="modal_gameover">Game Over!</h1>
             <div id="game-over-reason"></div>
@@ -829,7 +979,7 @@
     </div>
 
     <!-- Modal Pausa -->
-    <div id="pause-modal">
+    <div id="pause-modal" class="modal">
         <div class="modal-content">
             <h1 class="modal-title" data-lang-key="modal_pause">Pausa</h1>
             <button class="modal-btn" onclick="togglePause()" data-lang-key="btn_resume">Riprendi</button>
@@ -837,8 +987,30 @@
         </div>
     </div>
 
+    <!-- Modal Stats -->
+    <div id="stats-modal" class="modal">
+        <div class="modal-content">
+            <h1 class="modal-title">Statistiche</h1>
+            <div class="stats-list" id="stats-list-content">
+                <!-- JS Filled -->
+            </div>
+            <button class="modal-btn" onclick="closeModal('stats-modal')" data-lang-key="btn_close">Chiudi</button>
+        </div>
+    </div>
+
+    <!-- Modal Achievements -->
+    <div id="achievements-modal" class="modal">
+        <div class="modal-content">
+            <h1 class="modal-title">Obiettivi</h1>
+            <div class="achievements-list" id="achievements-list-content">
+                <!-- JS Filled -->
+            </div>
+            <button class="modal-btn" onclick="closeModal('achievements-modal')" data-lang-key="btn_close">Chiudi</button>
+        </div>
+    </div>
+
     <!-- Modal Settings -->
-    <div id="settings-modal">
+    <div id="settings-modal" class="modal">
         <div class="modal-content">
             <h1 class="modal-title" data-lang-key="modal_settings">Impostazioni</h1>
             
@@ -865,7 +1037,7 @@
                 </label>
             </div>
             
-            <button class="modal-btn" style="margin-top:30px;" onclick="closeSettings()" data-lang-key="btn_close">Chiudi</button>
+            <button class="modal-btn" style="margin-top:30px;" onclick="closeModal('settings-modal')" data-lang-key="btn_close">Chiudi</button>
         </div>
     </div>
 
@@ -924,13 +1096,37 @@
         }
     };
 
+    // Achievements Definition with Categories
+    const ACHIEVEMENTS_DEF = [
+        // Generale
+        { id: 'novice', cat: 'gen', title: 'Novizio', desc: 'Ottieni 100 punti', check: (s) => s.score >= 100 },
+        { id: 'survivor', cat: 'gen', title: 'Sopravvissuto', desc: 'Raggiungi il livello 5', check: (s) => s.level >= 5 },
+        { id: 'rich', cat: 'gen', title: 'Riccone', desc: 'Accumula 500 monete', check: (s) => s.coins >= 500 },
+        { id: 'lines_expert', cat: 'gen', title: 'Esperto di Linee', desc: 'Pulisci 100 linee totali', check: (s, stats) => stats.totalLines >= 100 },
+        { id: 'quad_clear', cat: 'gen', title: 'Spazzino', desc: 'Pulisci 4+ linee in una volta', event: 'clear', check: (lines) => lines >= 4 },
+        { id: 'combo_master', cat: 'gen', title: 'Combo Master', desc: 'Raggiungi una combo x5', event: 'combo', check: (c) => c >= 5 },
+        { id: 'bomber', cat: 'gen', title: 'Bombarolo', desc: 'Usa la Bomba', event: 'powerup_bomb' },
+        { id: 'lucky_hand', cat: 'gen', title: 'Mano Fortunata', desc: 'Usa il Reroll', event: 'powerup_reroll' },
+        
+        // Modalità
+        { id: 'time_is_money', cat: 'time', title: 'Il Tempo è Denaro', desc: 'Fai 500 punti in modalità Tempo', check: (s) => s.mode === 'time' && s.score >= 500 },
+        { id: 'strategist', cat: 'exp', title: 'Strategista', desc: 'Gioca in modalità Esperto', check: (s) => s.mode === 'expert' }
+    ];
+
+    const CATEGORY_NAMES = {
+        gen: "Generale",
+        classic: "Classica",
+        time: "A Tempo",
+        exp: "Esperto"
+    };
+
     let state = {
         score: 0,
-        highScore: localStorage.getItem('blockPuzzleHighScore') || 0,
-        coins: parseInt(localStorage.getItem('blockPuzzleCoins') || 100), // NOVITA
-        level: 1, // NOVITA
+        highScore: 0, // Current mode high score
+        coins: parseInt(localStorage.getItem('blockPuzzleCoins') || 100), 
+        level: 1, 
         levelProgress: 0,
-        combo: 0, // NOVITA
+        combo: 0, 
         mode: 'classic', 
         timeLeft: 60,
         isPlaying: false,
@@ -939,8 +1135,21 @@
         language: 'it',
         soundEnabled: true,
         hapticsEnabled: true,
-        bombMode: false // NOVITA
+        bombMode: false 
     };
+
+    // Statistiche Persistenti
+    let userStats = JSON.parse(localStorage.getItem('bp_stats')) || {
+        classicBest: 0,
+        timeBest: 0,
+        expertBest: 0,
+        lastScore: 0,
+        totalGames: 0,
+        totalLines: 0
+    };
+
+    // Obiettivi Sbloccati
+    let unlockedAchievements = JSON.parse(localStorage.getItem('bp_achievements')) || [];
 
     // --- AUDIO SYSTEM (SINTETIZZATORE) ---
     const AudioSys = {
@@ -952,7 +1161,6 @@
         },
         playTone: function(freq, type, duration, vol=0.1) {
             if (!state.soundEnabled || !this.ctx) return;
-            // Resume context if suspended (browser policy)
             if (this.ctx.state === 'suspended') this.ctx.resume();
 
             const osc = this.ctx.createOscillator();
@@ -982,7 +1190,6 @@
              setTimeout(()=>this.playTone(50, 'square', 0.4, 0.3), 50);
         },
         playClear: function() {
-            // Arpeggio magico
             setTimeout(() => this.playTone(500, 'sine', 0.3, 0.1), 0);
             setTimeout(() => this.playTone(750, 'sine', 0.3, 0.1), 100);
             setTimeout(() => this.playTone(1000, 'sine', 0.4, 0.1), 200);
@@ -996,6 +1203,10 @@
             setTimeout(() => this.playTone(300, 'sawtooth', 0.5, 0.2), 0);
             setTimeout(() => this.playTone(200, 'sawtooth', 0.5, 0.2), 400);
             setTimeout(() => this.playTone(100, 'sawtooth', 0.8, 0.2), 800);
+        },
+        playAchievement: function() {
+            this.playTone(800, 'sine', 0.2, 0.2);
+            setTimeout(() => this.playTone(1200, 'sine', 0.4, 0.2), 150);
         }
     };
 
@@ -1022,9 +1233,13 @@
         pieces: document.getElementById('pieces-container'),
         score: document.getElementById('score'),
         highScore: document.getElementById('high-score'),
+        // Modals
         modal: document.getElementById('game-over-modal'),
         pauseModal: document.getElementById('pause-modal'),
         settingsModal: document.getElementById('settings-modal'),
+        statsModal: document.getElementById('stats-modal'),
+        achievementsModal: document.getElementById('achievements-modal'),
+        
         finalScore: document.getElementById('final-score'),
         reasonText: document.getElementById('game-over-reason'), 
         menu: document.getElementById('main-menu'),
@@ -1037,7 +1252,7 @@
         introBar: document.getElementById('intro-bar'),
         // Particle Container
         particles: document.getElementById('particles-container'),
-        // NOVITA UI
+        // UI Stats
         statsRow: document.getElementById('stats-row'),
         powerupsContainer: document.getElementById('powerups-container'),
         coinValue: document.getElementById('coin-value'),
@@ -1045,14 +1260,17 @@
         levelBar: document.getElementById('level-bar'),
         comboDisplay: document.getElementById('combo-display'),
         btnRotate: document.getElementById('btn-rotate'),
-        btnBomb: document.getElementById('btn-bomb')
+        btnReroll: document.getElementById('btn-reroll'),
+        btnBomb: document.getElementById('btn-bomb'),
+        statsList: document.getElementById('stats-list-content'),
+        achievementsList: document.getElementById('achievements-list-content'),
+        notifArea: document.getElementById('notification-area')
     };
 
     // --- SEQUENZA INTRO AVANZATA ---
     window.onload = function() {
         runIntroSequence();
         
-        // Load settings from localstorage
         const savedSound = localStorage.getItem('bp_sound');
         const savedHaptics = localStorage.getItem('bp_haptics');
         if(savedSound !== null) {
@@ -1069,29 +1287,22 @@
     function runIntroSequence() {
         const phrases = ["Made by Minno", "Forging Blocks...", "Polishing Gold...", "Ultimate Experience"];
         let step = 0;
-
-        // Start bar animation
         setTimeout(() => DOM.introBar.style.width = '100%', 100);
 
         function nextPhrase() {
             if (step >= phrases.length) {
-                // Finish
                 DOM.introOverlay.style.opacity = '0';
                 setTimeout(() => {
                     DOM.introOverlay.style.display = 'none';
-                    AudioSys.init(); // Pre-init audio
+                    AudioSys.init(); 
                 }, 800);
                 return;
             }
-
             DOM.introText.innerText = phrases[step];
             DOM.introText.classList.add('intro-visible');
             DOM.introSub.style.opacity = '1';
 
-            // Speciale per l'ultima frase
-            if (step === phrases.length - 1) {
-                DOM.introText.innerHTML = "Block Puzzle<br>Ultimate Gold";
-            }
+            if (step === phrases.length - 1) DOM.introText.innerHTML = "Block Puzzle<br>Ultimate Gold";
 
             setTimeout(() => {
                 if (step < phrases.length - 1) {
@@ -1102,37 +1313,35 @@
                 setTimeout(nextPhrase, 500);
             }, 1200);
         }
-
         nextPhrase();
     }
 
-    // Colori
-    const COLORS = [
-        '#FF5733', '#33FF57', '#3357FF', '#F333FF', '#00E5FF', '#FFD700', '#FF8C33'
-    ];
+    const COLORS = ['#FF5733', '#33FF57', '#3357FF', '#F333FF', '#00E5FF', '#FFD700', '#FF8C33'];
 
-    const SHAPES = [
-        [[1]], 
-        [[1,1]], [[1,1,1]], [[1,1,1,1]], [[1,1,1,1,1]],
-        [[1],[1]], [[1],[1],[1]], [[1],[1],[1],[1]], [[1],[1],[1],[1],[1]],
-        [[1,1],[1,1]], [[1,1,1],[1,1,1]], 
-        [[1,0],[1,1]], [[0,1],[1,1]], [[1,1],[1,0]], [[1,1],[0,1]],
+    const SHAPES_CLASSIC = [
+        [[1]], [[1,1]], [[1,1,1]], [[1,1,1,1]],
+        [[1],[1]], [[1],[1],[1]], [[1],[1],[1],[1]],
+        [[1,1],[1,1]], 
+        [[1,0],[1,0],[1,1]], [[1,1],[1,0],[1,0]], [[1,1],[0,1],[0,1]], [[0,1],[0,1],[1,1]],
+        [[1,0,0],[1,1,1]], [[1,1,1],[1,0,0]], [[1,1,1],[0,0,1]], [[0,0,1],[1,1,1]],
         [[1,1,1],[0,1,0]], [[0,1,0],[1,1,1]], [[1,0],[1,1],[1,0]], [[0,1],[1,1],[0,1]],
-        [[1,0,0],[1,0,0],[1,1,1]], [[0,0,1],[0,0,1],[1,1,1]]
+        [[0,1],[1,1],[1,0]], [[1,0],[1,1],[0,1]]
     ];
 
-    const EXPERT_SHAPES = [
-        [[1,0,1],[1,1,1]], [[1,1,1],[1,0,1]], 
-        [[0,1,0],[1,1,1],[0,1,0]], 
-        [[1,1,1],[0,1,0],[0,1,0]], 
-        [[1,1,0],[0,1,1]], [[0,1,1],[1,1,0]], 
-        [[1,0,0],[1,0,0],[1,1,1]], [[1,1,1],[0,0,1],[0,0,1]], 
-        [[1,1],[1,1]] 
+    const SHAPES_EXPERT_ONLY = [
+        [[1,0],[0,1]], [[0,1],[1,0]],
+        [[1,0,0],[0,1,0],[0,0,1]], [[0,0,1],[0,1,0],[1,0,0]],
+        [[1,0,1],[1,1,1]], [[1,1],[1,0],[1,1]], [[1,1,1],[1,0,1]], [[1,1],[0,1],[1,1]],
+        [[0,1,0],[1,1,1],[0,1,0]],
+        [[1,1,1],[1,1,1],[1,1,1]], 
+        [[1,1,1,1,1]], 
+        [[1],[1],[1],[1],[1]],
+        [[1,1,1],[1,0,0],[1,0,0]], [[1,1,1],[0,0,1],[0,0,1]],
+        [[1,0,0],[1,0,0],[1,1,1]], [[0,0,1],[0,0,1],[1,1,1]],
+        [[1,0,1],[0,0,0],[1,0,1]],
     ];
 
-    DOM.highScore.innerText = state.highScore;
-
-    // --- Gestione Impostazioni ---
+    // --- Gestione Impostazioni & Modals ---
     function setLanguage(lang) {
         state.language = lang;
         AudioSys.playClick();
@@ -1159,14 +1368,111 @@
         if(val) haptic(50);
     }
 
-    function openSettings() {
+    function openSettings() { AudioSys.playClick(); DOM.settingsModal.classList.add('visible'); }
+    function closeModal(id) { AudioSys.playClick(); document.getElementById(id).classList.remove('visible'); }
+
+    // --- Statistiche & Obiettivi Logic ---
+    function openStats() {
         AudioSys.playClick();
-        DOM.settingsModal.classList.add('visible');
+        // Genera HTML diviso per categorie
+        let html = `
+            <div class="category-header">Generale</div>
+            <div class="stat-item"><span>Partite Totali</span><span class="stat-val">${userStats.totalGames}</span></div>
+            <div class="stat-item"><span>Linee Totali</span><span class="stat-val">${userStats.totalLines}</span></div>
+            <div class="stat-item"><span>Ultimo Score</span><span class="stat-val">${userStats.lastScore}</span></div>
+            
+            <div class="category-header">Classica</div>
+            <div class="stat-item"><span>Record</span><span class="stat-val">${userStats.classicBest}</span></div>
+            
+            <div class="category-header">A Tempo</div>
+            <div class="stat-item"><span>Record</span><span class="stat-val">${userStats.timeBest}</span></div>
+            
+            <div class="category-header">Esperto</div>
+            <div class="stat-item"><span>Record</span><span class="stat-val">${userStats.expertBest}</span></div>
+        `;
+        DOM.statsList.innerHTML = html;
+        DOM.statsModal.classList.add('visible');
     }
-    
-    function closeSettings() {
+
+    function openAchievements() {
         AudioSys.playClick();
-        DOM.settingsModal.classList.remove('visible');
+        DOM.achievementsList.innerHTML = '';
+        
+        // Raggruppa per categoria
+        const cats = ['gen', 'classic', 'time', 'exp'];
+        
+        cats.forEach(cat => {
+            // Check if there are items in this category
+            const items = ACHIEVEMENTS_DEF.filter(a => a.cat === cat);
+            if(items.length === 0) return;
+
+            // Add Header
+            const header = document.createElement('div');
+            header.className = 'category-header';
+            header.innerText = CATEGORY_NAMES[cat];
+            DOM.achievementsList.appendChild(header);
+
+            items.forEach(ach => {
+                const isUnlocked = unlockedAchievements.includes(ach.id);
+                const div = document.createElement('div');
+                div.className = `achievement-item ${isUnlocked ? 'unlocked' : ''}`;
+                div.innerHTML = `
+                    <div class="ach-icon">${isUnlocked ? '🏆' : '🔒'}</div>
+                    <div class="ach-info">
+                        <div class="ach-title">${ach.title}</div>
+                        <div class="ach-desc">${ach.desc}</div>
+                    </div>
+                    <div class="ach-status">${isUnlocked ? '✅' : ''}</div>
+                `;
+                DOM.achievementsList.appendChild(div);
+            });
+        });
+
+        DOM.achievementsModal.classList.add('visible');
+    }
+
+    function checkAchievements(eventName, eventVal) {
+        let changed = false;
+        ACHIEVEMENTS_DEF.forEach(ach => {
+            if (unlockedAchievements.includes(ach.id)) return;
+
+            let passed = false;
+            if (ach.event) {
+                if (ach.event === eventName) {
+                    if (ach.check) passed = ach.check(eventVal);
+                    else passed = true;
+                }
+            } else if (ach.check) {
+                passed = ach.check(state, userStats);
+            }
+
+            if (passed) {
+                unlockedAchievements.push(ach.id);
+                localStorage.setItem('bp_achievements', JSON.stringify(unlockedAchievements));
+                showNotification('🏆', 'Obiettivo Sbloccato!', ach.title);
+                AudioSys.playAchievement();
+                changed = true;
+            }
+        });
+    }
+
+    // --- Gestione Notifiche (Toast) ---
+    function showNotification(icon, title, desc) {
+        const notif = document.createElement('div');
+        notif.className = 'notification-toast';
+        notif.innerHTML = `
+            <div class="notif-icon">${icon}</div>
+            <div class="notif-content">
+                <div class="notif-title">${title}</div>
+                <div class="notif-desc">${desc}</div>
+            </div>
+        `;
+        DOM.notifArea.appendChild(notif);
+        
+        // Rimuovi dopo l'animazione (3s totali nel CSS)
+        setTimeout(() => {
+            if(notif.parentNode) notif.parentNode.removeChild(notif);
+        }, 3500);
     }
 
     // --- Gestione Menu e Flusso ---
@@ -1183,7 +1489,6 @@
     }
 
     function startGame(mode) {
-        // Init audio context on first user interaction in game
         AudioSys.init();
         AudioSys.playClick();
 
@@ -1196,11 +1501,22 @@
         state.isPaused = false;
         state.bombMode = false;
         
+        if(mode === 'classic') state.highScore = userStats.classicBest;
+        else if(mode === 'time') state.highScore = userStats.timeBest;
+        else if(mode === 'expert') state.highScore = userStats.expertBest;
+        DOM.highScore.innerText = state.highScore;
+
         DOM.settingsModal.classList.remove('visible'); 
         DOM.statsRow.style.visibility = 'visible';
         DOM.powerupsContainer.style.visibility = 'visible';
         DOM.board.classList.remove('bomb-active');
         DOM.btnBomb.classList.remove('active-mode');
+
+        if (mode === 'expert') {
+            DOM.btnReroll.classList.add('disabled');
+        } else {
+            DOM.btnReroll.classList.remove('disabled');
+        }
 
         if (mode === 'time') {
             state.timeLeft = 60;
@@ -1222,6 +1538,8 @@
         DOM.menu.classList.add('hidden');
         DOM.modal.classList.remove('visible');
         DOM.pauseModal.classList.remove('visible');
+        
+        checkAchievements('start');
     }
 
     function restartGame() {
@@ -1255,14 +1573,16 @@
         }
     }
 
-    // --- NOVITA: LOGICA ECONOMIA E POWERUPS ---
+    // --- LOGICA ECONOMIA E POWERUPS ---
     function updateEconomyUI() {
         DOM.coinValue.innerText = state.coins;
         localStorage.setItem('blockPuzzleCoins', state.coins);
         
-        // Update bottoni
         DOM.btnRotate.classList.toggle('affordable', state.coins >= 20);
+        DOM.btnReroll.classList.toggle('affordable', state.coins >= 50 && state.mode !== 'expert');
         DOM.btnBomb.classList.toggle('affordable', state.coins >= 50);
+        
+        checkAchievements('coins');
     }
 
     function usePowerup(type) {
@@ -1275,31 +1595,39 @@
                 rotateAllPieces();
                 updateEconomyUI();
                 spawnParticles(DOM.btnRotate); 
-            } else {
-                AudioSys.playTone(150, 'sawtooth', 0.2); // Error sound
-                DOM.btnRotate.classList.add('shake-effect');
-                setTimeout(()=>DOM.btnRotate.classList.remove('shake-effect'), 400);
-            }
+            } else failPowerup(DOM.btnRotate);
+
+        } else if (type === 'reroll') {
+            if (state.mode === 'expert') return; 
+            if (state.coins >= 50) {
+                state.coins -= 50;
+                AudioSys.playPowerup();
+                spawnPieces(); 
+                updateEconomyUI();
+                spawnParticles(DOM.btnReroll);
+                checkAchievements('powerup_reroll');
+            } else failPowerup(DOM.btnReroll);
+
         } else if (type === 'bomb') {
             if (state.coins >= 50) {
                 if (state.bombMode) {
-                    // Cancel
                     state.bombMode = false;
                     DOM.board.classList.remove('bomb-active');
                     DOM.btnBomb.classList.remove('active-mode');
                 } else {
-                    // Activate
                     state.bombMode = true;
                     DOM.board.classList.add('bomb-active');
                     DOM.btnBomb.classList.add('active-mode');
                     showFloatingText("BOMB MODE!");
                 }
-            } else {
-                AudioSys.playTone(150, 'sawtooth', 0.2);
-                DOM.btnBomb.classList.add('shake-effect');
-                setTimeout(()=>DOM.btnBomb.classList.remove('shake-effect'), 400);
-            }
+            } else failPowerup(DOM.btnBomb);
         }
+    }
+    
+    function failPowerup(btn) {
+        AudioSys.playTone(150, 'sawtooth', 0.2); 
+        btn.classList.add('shake-effect');
+        setTimeout(()=>btn.classList.remove('shake-effect'), 400);
     }
 
     function rotateAllPieces() {
@@ -1310,7 +1638,6 @@
                 const oldShape = JSON.parse(piece.dataset.shape);
                 const color = piece.dataset.color;
                 
-                // Ruota Matrice 90 gradi orario
                 const rows = oldShape.length;
                 const cols = oldShape[0].length;
                 let newShape = Array(cols).fill().map(() => Array(rows).fill(0));
@@ -1321,13 +1648,11 @@
                     }
                 }
                 
-                // Ricrea elemento
                 w.innerHTML = '';
                 const newEl = createPieceElement(newShape, color);
                 w.appendChild(newEl);
                 newEl.addEventListener('pointerdown', startDrag);
                 
-                // Animazione
                 newEl.style.transform = "rotate(90deg) scale(0)";
                 setTimeout(()=> newEl.style.transform = "rotate(0deg) scale(1)", 50);
             }
@@ -1343,11 +1668,9 @@
         const r = parseInt(cell.dataset.r);
         const c = parseInt(cell.dataset.c);
 
-        // Explode 3x3
         AudioSys.playExplosion();
         haptic(100);
         
-        let cleared = false;
         for (let i = -1; i <= 1; i++) {
             for (let j = -1; j <= 1; j++) {
                 const tr = r + i;
@@ -1355,8 +1678,6 @@
                 if(tr>=0 && tr<BOARD_SIZE && tc>=0 && tc<BOARD_SIZE) {
                     if (board[tr][tc] !== null) {
                         board[tr][tc] = null;
-                        cleared = true;
-                        // Visuals
                         const tCell = document.querySelector(`.cell[data-r="${tr}"][data-c="${tc}"]`);
                         if(tCell) {
                             tCell.classList.add('clearing');
@@ -1372,12 +1693,12 @@
             document.querySelectorAll('.clearing').forEach(el => el.classList.remove('clearing'));
         }, 300);
 
-        // Pay cost and reset mode
         state.coins -= 50;
         updateEconomyUI();
         state.bombMode = false;
         DOM.board.classList.remove('bomb-active');
         DOM.btnBomb.classList.remove('active-mode');
+        checkAchievements('powerup_bomb');
     }
 
     // --- Timer ---
@@ -1421,31 +1742,41 @@
     // --- Gestione Pezzi ---
     function spawnPieces() {
         DOM.pieces.innerHTML = '';
-        for (let i = 0; i < 3; i++) {
-            createPieceWrapper();
+        
+        let currentPool = [...SHAPES_CLASSIC]; 
+        if (state.mode === 'expert') {
+            currentPool = currentPool.concat(SHAPES_EXPERT_ONLY);
         }
+
+        let selectedShapes = [];
+        let attempts = 0;
+        
+        while(selectedShapes.length < 3 && attempts < 100) {
+            let randIdx = Math.floor(Math.random() * currentPool.length);
+            let candidateShape = currentPool[randIdx];
+            let isDuplicate = false;
+            
+            for(let s of selectedShapes) {
+                if(JSON.stringify(s) === JSON.stringify(candidateShape)) {
+                    isDuplicate = true;
+                    break;
+                }
+            }
+            if(!isDuplicate) selectedShapes.push(candidateShape);
+            attempts++;
+        }
+
+        selectedShapes.forEach(shape => createPieceWrapper(shape));
         checkGameOverCondition();
     }
 
-    function createPieceWrapper() {
+    function createPieceWrapper(shape) {
         const wrapper = document.createElement('div');
         wrapper.className = 'piece-wrapper';
-        
-        let shapePool = SHAPES;
-        if (state.mode === 'expert') {
-            if (Math.random() < 0.4) {
-                shapePool = EXPERT_SHAPES;
-            }
-        }
-
-        const shapeIdx = Math.floor(Math.random() * shapePool.length);
-        const shape = shapePool[shapeIdx];
         const color = COLORS[Math.floor(Math.random() * COLORS.length)];
-
         const pieceEl = createPieceElement(shape, color);
         wrapper.appendChild(pieceEl);
         DOM.pieces.appendChild(wrapper);
-
         pieceEl.addEventListener('pointerdown', startDrag);
     }
 
@@ -1473,16 +1804,14 @@
                 el.appendChild(cell);
             });
         });
-
         return el;
     }
 
     // --- Logica Drag & Drop ---
     function startDrag(e) {
-        if (state.isPaused || state.bombMode) return; // Disable drag during bomb mode
+        if (state.isPaused || state.bombMode) return;
         e.preventDefault();
         
-        // Pick sound
         AudioSys.playPick();
         haptic(20);
 
@@ -1686,7 +2015,6 @@
     function handleTurnEnd() {
         const linesCleared = checkLinesAndScore();
         
-        // Reset combo if no lines cleared
         if (linesCleared === 0) {
             state.combo = 0;
             DOM.comboDisplay.style.opacity = '0';
@@ -1717,7 +2045,6 @@
 
         const lines = rowsToClear.length + colsToClear.length;
         if (lines > 0) {
-            // FX
             AudioSys.playClear();
             haptic(100);
             DOM.board.classList.add('shake-effect');
@@ -1731,7 +2058,6 @@
                 for(let r=0; r<BOARD_SIZE; r++) cellsToClear.push({r,c});
             });
 
-            // Particles & Visuals
             cellsToClear.forEach(pos => {
                 const cell = document.querySelector(`.cell[data-r="${pos.r}"][data-c="${pos.c}"]`);
                 if(cell) {
@@ -1740,7 +2066,6 @@
                 }
             });
             
-            // Logic Combo & Coins
             state.combo++;
             let comboMult = state.combo > 1 ? state.combo : 1;
             
@@ -1749,11 +2074,14 @@
                 DOM.comboDisplay.innerText = `x${state.combo} COMBO!`;
                 DOM.comboDisplay.style.opacity = '1';
                 AudioSys.playCombo(state.combo);
+                checkAchievements('combo', state.combo);
             } else if (lines > 1) {
                 showFloatingText(`MULTI x${lines}!`);
             }
+            
+            if (lines >= 4) checkAchievements('clear', lines);
+            userStats.totalLines += lines;
 
-            // Coin calculation: (lines * 5) + (lines > 1 bonus) + (combo bonus)
             let earnedCoins = (lines * 2); 
             if (lines > 1) earnedCoins += lines * 2;
             if (state.combo > 1) earnedCoins += state.combo * 2;
@@ -1778,7 +2106,7 @@
                 }
 
                 updateScore(state.score + points);
-                updateLevelUI(); // Check level up
+                updateLevelUI(); 
                 updateBoardUI();
                 
                 document.querySelectorAll('.clearing').forEach(el => el.classList.remove('clearing'));
@@ -1792,16 +2120,17 @@
         const xpNeeded = state.level * 200;
         state.levelProgress = state.score % xpNeeded;
         
-        // Simple Level Up logic
         const currentLevelCalc = Math.floor(state.score / 200) + 1;
         if(currentLevelCalc > state.level) {
             state.level = currentLevelCalc;
-            showFloatingText("LEVEL UP!");
+            showNotification('⬆️', 'Level Up!', `Raggiunto livello ${state.level}`);
             AudioSys.playTone(800, 'square', 0.4, 0.2);
-            // Bonus coins per level up
-            state.coins += 20; 
+            // REWARD: 100 COINS
+            state.coins += 100; 
             updateEconomyUI();
         }
+        
+        checkAchievements('level', state.level);
 
         DOM.levelLabel.innerText = `Lvl ${state.level}`;
         const pct = Math.min(100, (state.score - ((state.level-1)*200)) / 200 * 100);
@@ -1813,11 +2142,10 @@
         const centerX = rect.left + rect.width/2;
         const centerY = rect.top + rect.height/2;
         
-        for(let i=0; i<8; i++) { // 8 particelle per blocco
+        for(let i=0; i<8; i++) {
             const p = document.createElement('div');
             p.classList.add('particle');
             
-            // Random direction
             const angle = Math.random() * Math.PI * 2;
             const velocity = 50 + Math.random() * 100;
             const tx = Math.cos(angle) * velocity + 'px';
@@ -1832,7 +2160,6 @@
             p.style.backgroundColor = COLORS[Math.floor(Math.random() * COLORS.length)];
             
             DOM.particles.appendChild(p);
-            
             setTimeout(() => p.remove(), 800);
         }
     }
@@ -1841,13 +2168,10 @@
         const el = document.createElement('div');
         el.className = 'floating-text';
         el.innerText = text;
-        
         const rect = DOM.board.getBoundingClientRect();
         el.style.top = (rect.top + rect.height / 2 - 20) + 'px';
         el.style.left = rect.left + 'px';
-        
         document.body.appendChild(el);
-        
         setTimeout(() => el.remove(), 1000);
     }
 
@@ -1857,8 +2181,8 @@
         if (state.score > state.highScore) {
             state.highScore = state.score;
             DOM.highScore.innerText = state.highScore;
-            localStorage.setItem('blockPuzzleHighScore', state.highScore);
         }
+        checkAchievements('score', state.score);
     }
 
     function checkGameOverCondition() {
@@ -1870,7 +2194,6 @@
             remaining.forEach(piece => {
                 if (canMove) return;
                 const shape = JSON.parse(piece.dataset.shape);
-                
                 for (let r = 0; r < BOARD_SIZE; r++) {
                     for (let c = 0; c < BOARD_SIZE; c++) {
                         if (canPlace(shape, r, c)) {
@@ -1881,10 +2204,10 @@
                 }
             });
 
-            // Se non ci sono mosse, controlla se il giocatore ha abbastanza soldi per comprare un powerup che potrebbe salvarlo
             if (!canMove) {
-                // Dare un attimo al giocatore per usare i powerups se ne ha
-                // Ma per semplicità, triggeriamo game over se non usa nulla
+                // Se ha abbastanza soldi per reroll e NON è esperto, o ha la bomba, aspetta un attimo
+                // Ma per semplicità triggeriamo subito il game over se non ha mosse legali con i pezzi attuali
+                // L'utente dovrebbe usare i powerup PRIMA di rimanere bloccato, oppure implementare una logica "Last Chance"
                 triggerGameOver('nomoves'); 
             }
         }, 100);
@@ -1898,16 +2221,20 @@
         state.bombMode = false;
         DOM.board.classList.remove('bomb-active');
         
+        // Save Stats
+        userStats.lastScore = state.score;
+        userStats.totalGames++;
+        if(state.mode === 'classic' && state.score > userStats.classicBest) userStats.classicBest = state.score;
+        if(state.mode === 'time' && state.score > userStats.timeBest) userStats.timeBest = state.score;
+        if(state.mode === 'expert' && state.score > userStats.expertBest) userStats.expertBest = state.score;
+        localStorage.setItem('bp_stats', JSON.stringify(userStats));
+
         let msg = "";
         const texts = TRANSLATIONS[state.language];
 
-        if (reason === 'timeout') {
-            msg = texts.reason_timeout;
-        } else if (reason === 'nomoves') {
-            msg = texts.reason_nomoves;
-        } else {
-            msg = texts.reason_generic;
-        }
+        if (reason === 'timeout') msg = texts.reason_timeout;
+        else if (reason === 'nomoves') msg = texts.reason_nomoves;
+        else msg = texts.reason_generic;
         
         DOM.reasonText.innerText = msg;
         DOM.finalScore.innerText = state.score;
