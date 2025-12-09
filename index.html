@@ -150,52 +150,55 @@
             transition: width 0.3s ease-out;
         }
 
-        /* --- NOTIFICATIONS (NEW) --- */
+        /* --- NOTIFICATIONS (UPDATED POSITION) --- */
         #notification-area {
             position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 500;
+            top: 5vh; /* Alto */
+            left: 50%; /* Centro orizzontale */
+            transform: translateX(-50%); /* Centratura esatta */
+            z-index: 1000; /* Sopra tutto (modal, menu, intro) */
             display: flex;
             flex-direction: column;
             gap: 10px;
             pointer-events: none;
             width: 90%;
             max-width: 400px;
+            align-items: center; /* Assicura che i toast siano centrati nella colonna */
         }
 
         .notification-toast {
             background: rgba(30, 30, 36, 0.95);
-            border: 1px solid var(--text-color);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            border: 2px solid var(--text-color); /* Bordo più visibile */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 15px rgba(255, 215, 0, 0.3);
             border-radius: 15px;
-            padding: 15px;
+            padding: 15px 20px;
             display: flex;
             align-items: center;
             gap: 15px;
-            animation: slideDown 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, fadeOut 0.5s ease-in 3s forwards;
-            backdrop-filter: blur(5px);
+            animation: slideDown 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, fadeOut 0.5s ease-in 3.5s forwards;
+            backdrop-filter: blur(8px);
+            width: 100%;
         }
         
-        .notif-icon { font-size: 2.2rem; }
+        .notif-icon { font-size: 2.5rem; filter: drop-shadow(0 0 5px gold); }
         .notif-content { text-align: left; flex: 1; }
         .notif-title { 
             color: var(--text-color); 
-            font-weight: 800; 
-            font-size: 1.1rem; 
+            font-weight: 900; 
+            font-size: 1.2rem; 
             text-transform: uppercase; 
             letter-spacing: 1px;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
         }
-        .notif-desc { color: #ddd; font-size: 0.9rem; font-weight: 500; }
+        .notif-desc { color: #fff; font-size: 0.95rem; font-weight: 600; }
 
         @keyframes slideDown {
-            from { transform: translateY(-100px); opacity: 0; }
+            from { transform: translateY(-100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
         @keyframes fadeOut {
-            to { opacity: 0; transform: translateY(-20px); pointer-events: none; }
+            to { opacity: 0; transform: translateY(-30px); pointer-events: none; }
         }
 
         /* --- MENU PRINCIPALE --- */
@@ -872,7 +875,7 @@
     <!-- Particles Layer -->
     <div id="particles-container"></div>
     
-    <!-- Area Notifiche (TOAST) -->
+    <!-- Area Notifiche (TOAST) - ORA CENTRALE IN ALTO -->
     <div id="notification-area"></div>
 
     <!-- Intro Overlay -->
@@ -1096,7 +1099,7 @@
         }
     };
 
-    // Achievements Definition with Categories
+    // Achievements Definition with Categories (UPDATED WITH 5 HARD OBJECTIVES)
     const ACHIEVEMENTS_DEF = [
         // Generale
         { id: 'novice', cat: 'gen', title: 'Novizio', desc: 'Ottieni 100 punti', check: (s) => s.score >= 100 },
@@ -1108,9 +1111,16 @@
         { id: 'bomber', cat: 'gen', title: 'Bombarolo', desc: 'Usa la Bomba', event: 'powerup_bomb' },
         { id: 'lucky_hand', cat: 'gen', title: 'Mano Fortunata', desc: 'Usa il Reroll', event: 'powerup_reroll' },
         
-        // Modalità
+        // Modalità A Tempo (NUOVI)
         { id: 'time_is_money', cat: 'time', title: 'Il Tempo è Denaro', desc: 'Fai 500 punti in modalità Tempo', check: (s) => s.mode === 'time' && s.score >= 500 },
-        { id: 'strategist', cat: 'exp', title: 'Strategista', desc: 'Gioca in modalità Esperto', check: (s) => s.mode === 'expert' }
+        { id: 'chrononaut', cat: 'time', title: 'Signore del Tempo', desc: 'Raggiungi 2000 punti in modalità A Tempo', check: (s) => s.mode === 'time' && s.score >= 2000 },
+        { id: 'panic_mode', cat: 'time', title: 'Panico!', desc: 'Pulisci una linea con meno di 5 sec rimasti', event: 'time_panic_clear' },
+        { id: 'time_hoarder', cat: 'time', title: 'Accumulatore', desc: 'Accumula più di 80 secondi sul timer', event: 'time_check', check: (t) => t >= 80 },
+
+        // Modalità Esperto (NUOVI)
+        { id: 'strategist', cat: 'exp', title: 'Strategista', desc: 'Gioca in modalità Esperto', check: (s) => s.mode === 'expert' },
+        { id: 'grand_master', cat: 'exp', title: 'Gran Maestro', desc: 'Raggiungi 2000 punti in modalità Esperto', check: (s) => s.mode === 'expert' && s.score >= 2000 },
+        { id: 'purist', cat: 'exp', title: 'Purista', desc: 'Fai 500 punti in Esperto senza usare Power-up', check: (s) => s.mode === 'expert' && s.score >= 500 && !s.hasUsedPowerup }
     ];
 
     const CATEGORY_NAMES = {
@@ -1135,7 +1145,8 @@
         language: 'it',
         soundEnabled: true,
         hapticsEnabled: true,
-        bombMode: false 
+        bombMode: false,
+        hasUsedPowerup: false // Track power usage for achievement
     };
 
     // Statistiche Persistenti
@@ -1469,7 +1480,7 @@
         `;
         DOM.notifArea.appendChild(notif);
         
-        // Rimuovi dopo l'animazione (3s totali nel CSS)
+        // Rimuovi dopo l'animazione (3.5s totali nel CSS)
         setTimeout(() => {
             if(notif.parentNode) notif.parentNode.removeChild(notif);
         }, 3500);
@@ -1500,6 +1511,7 @@
         state.isPlaying = true;
         state.isPaused = false;
         state.bombMode = false;
+        state.hasUsedPowerup = false; // Reset powerup usage
         
         if(mode === 'classic') state.highScore = userStats.classicBest;
         else if(mode === 'time') state.highScore = userStats.timeBest;
@@ -1587,6 +1599,8 @@
 
     function usePowerup(type) {
         if(!state.isPlaying || state.isPaused) return;
+
+        state.hasUsedPowerup = true; // Mark usage
 
         if (type === 'rotate') {
             if (state.coins >= 20) {
@@ -1708,6 +1722,10 @@
             if (state.isPaused) return;
             state.timeLeft--;
             updateTimerDisplay();
+            
+            // Check Achievement: Time Hoarder (Over 80s)
+            checkAchievements('time_check', state.timeLeft);
+            
             if (state.timeLeft <= 0) {
                 stopTimer();
                 triggerGameOver('timeout');
@@ -2102,6 +2120,10 @@
                 points *= comboMult;
 
                 if (state.mode === 'time') {
+                    // Check Panic Mode Achievement (clear with < 5s)
+                    if (state.timeLeft < 5) {
+                        checkAchievements('time_panic_clear');
+                    }
                     addTime(lines * 5); 
                 }
 
