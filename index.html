@@ -2,14 +2,14 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Viewport ottimizzata -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Block Puzzle - Ultimate Gold</title>
     <style>
         :root {
             --bg-color: #121212;
             --board-bg: #1e1e24;
             --cell-empty: #2a2a35;
-            /* Nuovi colori ORO */
             --text-color: #FFD700; 
             --text-secondary: #FFA500;
             --highlight: rgba(255, 215, 0, 0.2);
@@ -18,13 +18,13 @@
             --btn-radius: 50px;
             --danger: #ff4444;
             --success: #4CAF50;
+            --safe-bottom: env(safe-area-inset-bottom, 20px);
         }
 
         * {
             box-sizing: border-box;
             user-select: none;
             -webkit-user-select: none;
-            touch-action: none;
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -36,11 +36,27 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             min-height: 100vh;
             margin: 0;
             overflow: hidden;
+            padding-top: 10px;
+            padding-bottom: var(--safe-bottom);
+            touch-action: none;
         }
+
+        .scrollable { touch-action: pan-y !important; }
+
+        /* --- Performance Mode Overrides --- */
+        body.performance-mode .particle { display: none !important; }
+        body.performance-mode .shake-effect { animation: none !important; transform: none !important; }
+        body.performance-mode .board-pulse { animation: none !important; box-shadow: none !important; }
+        body.performance-mode .menu-title { animation: none !important; text-shadow: 2px 2px 0px #8B4513; }
+        body.performance-mode .floating-text { animation: none !important; opacity: 1; transition: opacity 0.5s; transform: translateY(-30px); }
+        body.performance-mode .cell.filled { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1) !important; }
+        body.performance-mode .cell.filled::after { display: none; }
+        body.performance-mode #main-menu { transition: none; }
+        body.performance-mode .modal-content { box-shadow: 0 5px 20px rgba(0,0,0,0.5); transition: none; }
 
         /* --- PARTICELLE ED EFFETTI --- */
         #particles-container {
@@ -77,11 +93,19 @@
             100% { transform: translate(1px, -2px) rotate(-1deg); }
         }
 
-        .shake-effect {
-            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        .shake-effect { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+
+        .board-pulse {
+            animation: gridPulse 1.5s infinite alternate;
+            border-color: rgba(255, 215, 0, 0.4) !important;
         }
 
-        /* --- SCHERMATA INTRO (Caricamento Migliorato) --- */
+        @keyframes gridPulse {
+            from { box-shadow: 0 0 10px rgba(255, 215, 0, 0.1); }
+            to { box-shadow: 0 0 25px rgba(255, 215, 0, 0.3); }
+        }
+
+        /* --- SCHERMATA INTRO --- */
         #intro-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -92,16 +116,20 @@
             justify-content: center;
             align-items: center;
             transition: opacity 0.8s ease-in-out;
+            pointer-events: auto; 
         }
 
         .loader-text-container {
             position: relative;
             margin-bottom: 20px;
             perspective: 500px;
+            width: 90%;
+            display: flex;
+            justify-content: center;
         }
 
         #intro-text {
-            font-size: 2.5rem;
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 4px;
@@ -126,12 +154,8 @@
             transition: opacity 0.5s;
         }
 
-        .intro-visible {
-            opacity: 1 !important;
-            transform: scale(1.1);
-        }
+        .intro-visible { opacity: 1 !important; transform: scale(1.1); }
 
-        /* Loading Bar */
         .loading-bar-bg {
             width: 200px;
             height: 4px;
@@ -150,25 +174,25 @@
             transition: width 0.3s ease-out;
         }
 
-        /* --- NOTIFICATIONS (UPDATED POSITION) --- */
+        /* --- NOTIFICATIONS --- */
         #notification-area {
             position: fixed;
-            top: 5vh; /* Alto */
-            left: 50%; /* Centro orizzontale */
-            transform: translateX(-50%); /* Centratura esatta */
-            z-index: 1000; /* Sopra tutto (modal, menu, intro) */
+            top: 5vh;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
             display: flex;
             flex-direction: column;
             gap: 10px;
             pointer-events: none;
             width: 90%;
             max-width: 400px;
-            align-items: center; /* Assicura che i toast siano centrati nella colonna */
+            align-items: center;
         }
 
         .notification-toast {
             background: rgba(30, 30, 36, 0.95);
-            border: 2px solid var(--text-color); /* Bordo più visibile */
+            border: 2px solid var(--text-color);
             box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 15px rgba(255, 215, 0, 0.3);
             border-radius: 15px;
             padding: 15px 20px;
@@ -221,24 +245,32 @@
         }
 
         .menu-title {
-            font-size: 3.5rem;
-            background: linear-gradient(to bottom, #FFD700, #FFA500);
+            font-size: clamp(3rem, 12vw, 5rem); 
+            background: linear-gradient(to bottom, #FFD700, #FDB931, #996515);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.4));
+            letter-spacing: 3px;
+            filter: drop-shadow(0 5px 0 #8B4513) drop-shadow(0 15px 15px rgba(0,0,0,0.5));
             text-align: center;
-            font-weight: 800;
+            font-weight: 900;
+            line-height: 1.1;
+            animation: titleFloat 4s ease-in-out infinite;
+            padding: 0 10px;
+        }
+
+        @keyframes titleFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
         }
 
         .menu-btn {
             background: linear-gradient(135deg, #FFD700, #ffb900);
             color: #1a1a2e;
             border: none;
-            padding: 18px 45px;
-            font-size: 1.3rem;
+            padding: 15px 30px;
+            font-size: 1.2rem;
             border-radius: var(--btn-radius);
             cursor: pointer;
             margin: 8px;
@@ -251,15 +283,10 @@
             overflow: hidden;
         }
 
-        .menu-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 30px rgba(255, 215, 0, 0.4);
-        }
+        .menu-btn:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(255, 215, 0, 0.4); }
+        .menu-btn:active { transform: scale(0.95) translateY(0); box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2); }
         
-        .menu-btn:active {
-            transform: scale(0.95) translateY(0);
-            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2);
-        }
+        .btn-click-effect { transform: scale(0.92) !important; filter: brightness(1.2); }
 
         .menu-btn.secondary {
             background: rgba(255, 255, 255, 0.05);
@@ -267,55 +294,69 @@
             color: var(--text-color);
             box-shadow: none;
         }
-        
-        .menu-btn.secondary:hover {
-            background: rgba(255, 215, 0, 0.1);
-        }
+        .menu-btn.secondary:hover { background: rgba(255, 215, 0, 0.1); }
 
         .menu-btn.expert {
             background: linear-gradient(135deg, #ff4e50, #f9d423);
             color: #1a1a2e;
         }
 
-        /* Pulsanti Extra Menu (Stats, Obiettivi) */
         .extra-btn-container {
             display: flex;
             gap: 15px;
-            margin-top: 20px;
+            margin-top: 30px;
+            justify-content: center;
+            flex-wrap: wrap; 
+            max-width: 340px;
         }
 
         .extra-menu-btn {
-            width: 60px;
-            height: 60px;
+            width: 55px;
+            height: 55px;
             border-radius: 50%;
             background: rgba(255,255,255,0.1);
             border: 1px solid var(--text-color);
             color: white;
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
+            position: relative; 
         }
 
-        .extra-menu-btn:hover {
-            background: rgba(255,215,0,0.2);
-            transform: scale(1.1);
+        .extra-menu-btn:hover { background: rgba(255,215,0,0.2); transform: scale(1.1); }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px; right: -5px;
+            width: 18px; height: 18px;
+            background-color: #ff4444;
+            border-radius: 50%;
+            border: 2px solid #121212;
+            display: none;
+            box-shadow: 0 0 5px #ff4444;
+            animation: pulse-badge 1.5s infinite;
+        }
+        .notification-badge.active { display: block; }
+        #news-badge { background-color: #00E5FF; box-shadow: 0 0 5px #00E5FF; }
+        
+        @keyframes pulse-badge {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
         }
 
-        /* Pulsante Settings nel Menu */
         .settings-btn-main {
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: 20px; right: 20px;
             background: rgba(255,255,255,0.1);
             border: 1px solid var(--text-color);
             color: var(--text-color);
-            width: 50px;
-            height: 50px;
+            width: 45px; height: 45px;
             border-radius: 50%;
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -324,19 +365,15 @@
             z-index: 201;
         }
 
-        .settings-btn-main:hover {
-            background: rgba(255, 215, 0, 0.2);
-            transform: rotate(45deg);
-        }
-
         /* --- UI DI GIOCO --- */
         .top-bar {
-            width: 90vw;
-            max-width: 400px;
+            width: 95vw;
+            max-width: 450px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 15px;
+            margin-bottom: 5px;
+            padding-top: 5px;
         }
         
         .icon-btn {
@@ -345,8 +382,7 @@
             color: var(--text-color);
             font-size: 1.2rem;
             cursor: pointer;
-            width: 45px;
-            height: 45px;
+            width: 40px; height: 40px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -355,18 +391,13 @@
             margin-right: 5px;
         }
 
-        .icon-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        /* NUOVA UI: Coins & Levels */
         .stats-row {
-            width: 90vw;
-            max-width: 400px;
+            width: 95vw;
+            max-width: 450px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             padding: 0 5px;
         }
 
@@ -374,22 +405,23 @@
             display: flex;
             align-items: center;
             background: rgba(0,0,0,0.3);
-            padding: 5px 12px;
+            padding: 4px 10px;
             border-radius: 20px;
             border: 1px solid var(--text-color);
             font-weight: bold;
             color: var(--text-color);
             gap: 5px;
+            font-size: 0.9rem;
         }
 
         .level-container {
             flex-grow: 1;
-            margin-left: 15px;
+            margin-left: 10px;
             margin-right: 5px;
         }
 
         .level-text {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: #aaa;
             margin-bottom: 2px;
             display: flex;
@@ -397,7 +429,7 @@
         }
 
         .level-bar-bg {
-            height: 6px;
+            height: 5px;
             background: #333;
             border-radius: 3px;
             overflow: hidden;
@@ -412,17 +444,17 @@
 
         .score-container {
             display: flex;
-            gap: 8px;
+            gap: 5px;
             flex: 1;
             justify-content: flex-end;
         }
 
         .score-box {
             background: var(--board-bg);
-            padding: 8px 15px;
-            border-radius: 20px;
+            padding: 5px 10px;
+            border-radius: 15px;
             text-align: center;
-            min-width: 75px;
+            min-width: 60px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             border: 1px solid rgba(255, 215, 0, 0.1);
             position: relative;
@@ -434,62 +466,58 @@
             background: rgba(255, 215, 0, 0.1);
             display: none; 
         }
-        
-        .score-box.timer.active {
-            display: block;
-        }
+        .score-box.timer.active { display: block; }
 
         .score-label {
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             color: #888;
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 2px;
         }
 
-        .score-value {
-            font-size: 1.2rem;
-            font-weight: 800;
-            color: white;
-        }
-        
+        .score-value { font-size: 1rem; font-weight: 800; color: white; }
         #score { color: var(--text-color); }
 
-        /* Griglia di Gioco */
         #game-board {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr);
-            gap: var(--gap);
+            gap: 2px;
             background-color: var(--board-bg);
-            padding: var(--gap);
-            border-radius: 20px;
-            width: 90vw;
-            height: 90vw;
-            max-width: 400px;
-            max-height: 400px;
+            padding: 4px;
+            border-radius: 16px;
+            width: 92vw;
+            height: 92vw;
+            max-width: 45vh; 
+            max-height: 45vh;
             position: relative;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             border: 1px solid rgba(255, 215, 0, 0.1);
             transition: border-color 0.3s;
+            margin-bottom: 10px;
+            touch-action: none;
         }
 
-        /* Effetto Bomba Attiva */
+        @media (min-width: 500px) and (min-height: 600px) {
+             #game-board {
+                width: 400px; height: 400px;
+                max-width: none; max-height: none;
+                gap: 4px; padding: 6px;
+             }
+        }
+
         #game-board.bomb-active {
             border: 2px solid #ff4444;
             box-shadow: 0 0 20px rgba(255, 68, 68, 0.4);
-            cursor: crosshair;
         }
         
-        #game-board.bomb-active .cell:hover {
-            background-color: rgba(255, 68, 68, 0.3);
-        }
+        #game-board.bomb-active .cell:hover { background-color: rgba(255, 68, 68, 0.3); }
 
         .cell {
             background-color: var(--cell-empty);
-            border-radius: 6px;
-            width: 100%;
-            height: 100%;
+            border-radius: 4px;
+            width: 100%; height: 100%;
             transition: background-color 0.15s ease-out;
         }
 
@@ -501,17 +529,17 @@
         .cell.filled::after {
             content: '';
             position: absolute;
-            top: 2px; left: 2px;
+            top: 10%; left: 10%;
             width: 40%; height: 40%;
             background: radial-gradient(circle at top left, rgba(255,255,255,0.6), transparent);
-            border-radius: 4px;
+            border-radius: 2px;
         }
 
         .cell.preview {
             background-color: rgba(255, 215, 0, 0.2) !important;
             box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
             transform: scale(0.9);
-            border-radius: 8px;
+            border-radius: 4px;
             border: 1px dashed rgba(255,215,0,0.5);
         }
 
@@ -521,15 +549,8 @@
         }
 
         @keyframes vanish {
-            0% { 
-                transform: scale(1); 
-                filter: brightness(2) drop-shadow(0 0 10px gold); 
-                background-color: #fff; 
-            }
-            100% { 
-                transform: scale(0); 
-                opacity: 0; 
-            }
+            0% { transform: scale(1); filter: brightness(2) drop-shadow(0 0 10px gold); background-color: #fff; }
+            100% { transform: scale(0); opacity: 0; }
         }
 
         .floating-text {
@@ -555,45 +576,37 @@
         #powerups-container {
             display: flex;
             justify-content: center;
-            gap: 15px;
-            margin-top: 15px;
-            width: 90vw;
+            gap: 10px;
+            margin-top: 5px;
+            width: 95vw;
             max-width: 400px;
+            flex-shrink: 0; 
         }
 
         .powerup-btn {
             background: linear-gradient(145deg, #2a2a35, #1e1e24);
             border: 1px solid #444;
-            border-radius: 15px;
-            padding: 8px 10px;
+            border-radius: 12px;
+            padding: 6px 5px;
             display: flex;
             flex-direction: column;
             align-items: center;
             color: #ccc;
             cursor: pointer;
             transition: all 0.2s;
-            width: 80px;
+            width: 30%;
+            max-width: 80px;
             position: relative;
             overflow: hidden;
         }
 
-        .powerup-btn:active {
-            transform: scale(0.95);
-        }
-        
-        /* Disabilita per expert */
-        .powerup-btn.disabled {
-            opacity: 0.3;
-            pointer-events: none;
-            filter: grayscale(1);
-        }
-
+        .powerup-btn:active { transform: scale(0.95); }
+        .powerup-btn.disabled { opacity: 0.3; pointer-events: none; filter: grayscale(1); }
         .powerup-btn.affordable {
             border-color: var(--text-color);
             color: white;
             background: linear-gradient(145deg, #2a2a35, #252515);
         }
-
         .powerup-btn.active-mode {
             background: var(--text-color);
             color: #121212;
@@ -606,36 +619,33 @@
             100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
         }
 
-        .powerup-icon {
-            font-size: 1.5rem;
-            margin-bottom: 4px;
-        }
+        .powerup-icon { font-size: 1.2rem; margin-bottom: 2px; }
+        .powerup-cost { font-size: 0.65rem; display: flex; align-items: center; gap: 2px; color: #888; }
+        .affordable .powerup-cost { color: #FFD700; }
 
-        .powerup-cost {
-            font-size: 0.7rem;
-            display: flex;
-            align-items: center;
-            gap: 2px;
-            color: #888;
-        }
-        
-        .affordable .powerup-cost {
-            color: #FFD700;
-        }
-
+        /* Container Pezzi */
         #pieces-container {
             display: flex;
             justify-content: space-around;
             align-items: center;
-            width: 90vw;
-            max-width: 400px;
-            height: 120px; 
-            margin-top: 10px;
+            width: 98vw;
+            max-width: 450px;
+            height: 120px;
+            margin-top: 15px; 
+            margin-bottom: auto;
+            padding-bottom: 20px;
+            touch-action: none;
+        }
+
+        @media (max-height: 650px) {
+            #pieces-container { height: 90px; margin-top: 5px; }
+            .powerup-btn { padding: 4px; }
+            .powerup-icon { font-size: 1rem; }
+            .menu-title { margin-bottom: 15px; }
         }
 
         .piece-wrapper {
-            width: 30%;
-            height: 100%;
+            width: 30%; height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -648,22 +658,21 @@
             cursor: grab;
             transition: transform 0.1s;
             touch-action: none;
-            padding: 10px;
+            padding: 15px;
         }
-        
-        .draggable-piece:active {
-            cursor: grabbing;
-        }
+        .draggable-piece:active { cursor: grabbing; }
 
         .piece-cell {
-            width: 20px;
-            height: 20px;
-            border-radius: 4px;
+            width: 18px; height: 18px;
+            border-radius: 3px;
             pointer-events: none;
             box-shadow: inset 0 2px 4px rgba(255,255,255,0.4);
         }
+        @media (min-width: 600px) {
+            .piece-cell { width: 25px; height: 25px; }
+        }
 
-        /* Modals: Game Over, Pause, Settings, Stats, Achievements */
+        /* Modals */
         .modal {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -679,34 +688,32 @@
             transition: opacity 0.4s ease;
         }
 
-        .modal.visible {
-            opacity: 1;
-            pointer-events: all;
-        }
+        .modal.visible { opacity: 1; pointer-events: all; }
+
+        #reset-confirm-modal { z-index: 260; } /* Ensure it's on top */
 
         .modal-content {
             background: #232323;
-            padding: 30px;
-            border-radius: 30px;
+            padding: 25px;
+            border-radius: 25px;
             text-align: center;
             border: 1px solid rgba(255, 215, 0, 0.2);
-            width: 85%;
+            width: 90%;
             max-width: 380px;
-            max-height: 85vh;
-            overflow-y: auto;
+            max-height: 80vh; 
+            overflow-y: auto; 
             box-shadow: 0 20px 60px rgba(0,0,0,0.6);
             transform: scale(0.9);
             transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            touch-action: pan-y;
         }
 
-        .visible .modal-content {
-            transform: scale(1);
-        }
+        .visible .modal-content { transform: scale(1); }
 
         .modal-title {
             color: var(--text-color); 
             margin: 0 0 10px 0;
-            font-size: 2rem;
+            font-size: 1.8rem;
             text-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
             text-transform: uppercase;
         }
@@ -722,48 +729,51 @@
             background: linear-gradient(135deg, #FFD700, #FFA500);
             color: #1a1a2e;
             border: none;
-            padding: 15px 35px;
-            font-size: 1.1rem;
+            padding: 12px 30px;
+            font-size: 1rem;
             border-radius: 50px;
             cursor: pointer;
-            margin-top: 20px;
+            margin-top: 15px;
             font-weight: bold;
             width: 100%;
             box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
             transition: transform 0.1s;
         }
 
-        .modal-btn:active {
-            transform: scale(0.96);
-        }
+        .modal-btn:active { transform: scale(0.96); }
+        .modal-btn:disabled { background: #444; color: #888; cursor: not-allowed; box-shadow: none; }
         
-        /* Stats & Achievements Lists */
         .stats-list, .achievements-list {
             text-align: left;
             width: 100%;
             margin-top: 10px;
+            max-height: 40vh;
+            overflow-y: auto;
+            padding-right: 5px;
+            scrollbar-width: thin;
+            touch-action: pan-y;
         }
 
-        /* Categorie Headers */
         .category-header {
             background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.1), transparent);
             color: var(--text-color);
             font-weight: 800;
             text-transform: uppercase;
-            padding: 8px 0;
-            margin-top: 20px;
-            margin-bottom: 8px;
+            padding: 5px 0;
+            margin-top: 15px;
+            margin-bottom: 5px;
             border-bottom: 1px solid var(--text-color);
-            font-size: 1.1rem;
+            font-size: 1rem;
             text-align: center;
         }
         
         .stat-item {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
+            padding: 6px 0;
             border-bottom: 1px solid rgba(255,255,255,0.1);
             color: #ccc;
+            font-size: 0.9rem;
         }
         
         .stat-val { color: var(--text-color); font-weight: bold; }
@@ -771,8 +781,8 @@
         .achievement-item {
             background: rgba(255,255,255,0.05);
             border-radius: 10px;
-            padding: 10px;
-            margin-bottom: 8px;
+            padding: 8px;
+            margin-bottom: 6px;
             display: flex;
             align-items: center;
             border: 1px solid transparent;
@@ -783,31 +793,30 @@
             background: rgba(76, 175, 80, 0.1);
         }
         
-        .ach-icon { font-size: 1.5rem; margin-right: 10px; opacity: 0.5; }
+        .ach-icon { font-size: 1.2rem; margin-right: 10px; opacity: 0.5; }
         .unlocked .ach-icon { opacity: 1; }
         
         .ach-info { flex-grow: 1; }
-        .ach-title { font-weight: bold; color: #fff; font-size: 0.9rem; }
-        .ach-desc { font-size: 0.75rem; color: #888; }
-        .ach-status { font-size: 1.2rem; }
+        .ach-title { font-weight: bold; color: #fff; font-size: 0.85rem; }
+        .ach-desc { font-size: 0.7rem; color: #888; }
+        .ach-status { font-size: 1rem; }
 
         /* Settings Style */
         .setting-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin: 15px 0;
+            margin: 12px 0;
             width: 100%;
             color: #ccc;
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
 
-        /* Toggle Switch */
         .switch {
             position: relative;
             display: inline-block;
-            width: 50px;
-            height: 28px;
+            width: 45px;
+            height: 24px;
         }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider {
@@ -821,23 +830,38 @@
         .slider:before {
             position: absolute;
             content: "";
-            height: 20px;
-            width: 20px;
+            height: 16px;
+            width: 16px;
             left: 4px;
             bottom: 4px;
             background-color: white;
             transition: .4s;
             border-radius: 50%;
         }
-        input:checked + .slider {
-            background-color: #FFD700;
+        input:checked + .slider { background-color: #FFD700; }
+        input:checked + .slider:before { transform: translateX(21px); background-color: #1a1a2e; }
+
+        /* Custom Range Slider */
+        .range-slider {
+            -webkit-appearance: none;
+            width: 100px;
+            height: 6px;
+            border-radius: 5px;
+            background: #444;
+            outline: none;
+            margin-left: 10px;
         }
-        input:checked + .slider:before {
-            transform: translateX(22px);
-            background-color: #1a1a2e;
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #FFD700;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(255,215,0,0.5);
         }
 
-        /* Lang switch buttons */
         .lang-switch-container {
             display: flex;
             gap: 10px;
@@ -847,7 +871,7 @@
         }
         
         .lang-btn {
-            padding: 10px 20px;
+            padding: 8px 15px;
             background: rgba(255,255,255,0.1);
             border: 2px solid transparent;
             color: #888;
@@ -855,7 +879,7 @@
             cursor: pointer;
             font-weight: bold;
             transition: all 0.2s;
-            font-size: 1.5rem;
+            font-size: 1.2rem;
         }
         
         .lang-btn.active {
@@ -864,21 +888,60 @@
             background: rgba(255,215,0,0.1);
         }
 
-        @media (min-width: 600px) {
-            .piece-cell { width: 25px; height: 25px; }
-            .menu-title { font-size: 4.5rem; }
+        #update-modal .modal-content {
+            max-width: 600px; 
+            width: 95%;
+            padding: 30px 20px;
+        }
+
+        .update-feature {
+            background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,215,0,0.05));
+            border-left: 4px solid var(--text-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            text-align: left;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        
+        .update-title-text {
+            display: block;
+            color: var(--text-color);
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        
+        .update-desc-text { color: #ddd; font-size: 0.9rem; line-height: 1.3; }
+
+        .daily-coins-anim {
+            font-size: 3rem;
+            animation: bounceIn 1s ease;
+            margin: 15px 0;
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0); opacity: 0; }
+            60% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+
+        @media (min-width: 768px) {
+            body { justify-content: center; } 
+            #pieces-container { height: 150px; margin-top: 20px; padding-bottom: 0; }
+            .powerup-btn { padding: 10px 15px; max-width: 100px; }
+            .powerup-icon { font-size: 1.5rem; }
+            .modal-content { padding: 40px; }
+            .menu-title { font-size: 5rem; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Particles Layer -->
     <div id="particles-container"></div>
-    
-    <!-- Area Notifiche (TOAST) - ORA CENTRALE IN ALTO -->
     <div id="notification-area"></div>
 
-    <!-- Intro Overlay -->
     <div id="intro-overlay">
         <div class="loader-text-container">
             <div id="intro-text"></div>
@@ -901,6 +964,14 @@
         <div class="extra-btn-container">
             <button class="extra-menu-btn" onclick="openStats()">📊</button>
             <button class="extra-menu-btn" onclick="openAchievements()">🏆</button>
+            <button class="extra-menu-btn" onclick="openDailyReward()">
+                🎁
+                <div class="notification-badge" id="daily-badge"></div>
+            </button> 
+            <button class="extra-menu-btn" onclick="openUpdates()">
+                📰
+                <div class="notification-badge" id="news-badge"></div>
+            </button> 
         </div>
     </div>
 
@@ -908,6 +979,7 @@
     <div class="top-bar">
         <div style="display:flex;">
             <button class="icon-btn" onclick="showMainMenu()">🏠</button>
+            <button class="icon-btn" onclick="openSettings()">⚙️</button> 
             <button class="icon-btn" onclick="togglePause()">II</button>
         </div>
         <div class="score-container">
@@ -926,7 +998,6 @@
         </div>
     </div>
 
-    <!-- NUOVA SEZIONE: Stats, Coins, Level -->
     <div class="stats-row" id="stats-row" style="visibility: hidden;">
         <div class="coin-display">
             <span>🪙</span>
@@ -947,11 +1018,10 @@
         <!-- Generato via JS -->
     </div>
 
-    <!-- POWER UPS (3 Buttons) -->
     <div id="powerups-container" style="visibility: hidden;">
         <button class="powerup-btn" id="btn-rotate" onclick="usePowerup('rotate')">
             <div class="powerup-icon">🔄</div>
-            <div class="powerup-cost">20 🪙</div>
+            <div class="powerup-cost">50 🪙</div>
         </button>
         <button class="powerup-btn" id="btn-reroll" onclick="usePowerup('reroll')">
             <div class="powerup-icon">🎲</div>
@@ -974,7 +1044,7 @@
             <div id="game-over-reason"></div>
             
             <p style="color:#889; margin-bottom: 5px; font-size: 0.9rem;" data-lang-key="label_final_score">Punteggio Finale</p>
-            <div id="final-score" style="color:white; font-size: 3rem; font-weight:800; margin-bottom: 10px; text-shadow: 0 0 20px rgba(255,215,0,0.5);">0</div>
+            <div id="final-score" style="color:white; font-size: 2.5rem; font-weight:800; margin-bottom: 10px; text-shadow: 0 0 20px rgba(255,215,0,0.5);">0</div>
             
             <button class="modal-btn" onclick="restartGame()" data-lang-key="btn_retry">Riprova</button>
             <button class="modal-btn" style="background:transparent; border:2px solid #555; color: #aaa; margin-top:10px; box-shadow:none;" onclick="showMainMenu()" data-lang-key="btn_mainmenu">Menu Principale</button>
@@ -992,8 +1062,8 @@
 
     <!-- Modal Stats -->
     <div id="stats-modal" class="modal">
-        <div class="modal-content">
-            <h1 class="modal-title">Statistiche</h1>
+        <div class="modal-content scrollable">
+            <h1 class="modal-title" data-lang-key="modal_stats">Statistiche</h1>
             <div class="stats-list" id="stats-list-content">
                 <!-- JS Filled -->
             </div>
@@ -1003,8 +1073,8 @@
 
     <!-- Modal Achievements -->
     <div id="achievements-modal" class="modal">
-        <div class="modal-content">
-            <h1 class="modal-title">Obiettivi</h1>
+        <div class="modal-content scrollable">
+            <h1 class="modal-title" data-lang-key="label_achievements">Obiettivi</h1>
             <div class="achievements-list" id="achievements-list-content">
                 <!-- JS Filled -->
             </div>
@@ -1016,14 +1086,11 @@
     <div id="settings-modal" class="modal">
         <div class="modal-content">
             <h1 class="modal-title" data-lang-key="modal_settings">Impostazioni</h1>
-            
             <p style="color:#aaa; margin-bottom:5px;" data-lang-key="label_language">Lingua / Language</p>
             <div class="lang-switch-container">
                 <button class="lang-btn active" id="btn-lang-it" onclick="setLanguage('it')">🇮🇹</button>
                 <button class="lang-btn" id="btn-lang-en" onclick="setLanguage('en')">🇬🇧</button>
             </div>
-
-            <!-- Nuove opzioni Audio/Vibrazione -->
             <div class="setting-row">
                 <span data-lang-key="opt_sound">Suoni</span>
                 <label class="switch">
@@ -1033,23 +1100,63 @@
             </div>
             
             <div class="setting-row">
-                <span data-lang-key="opt_haptics">Vibrazione</span>
+                <span data-lang-key="opt_perf">Modalità Performance</span>
                 <label class="switch">
-                    <input type="checkbox" id="chk-haptics" checked onchange="toggleHaptics(this.checked)">
+                    <input type="checkbox" id="chk-perf" onchange="togglePerformance(this.checked)">
                     <span class="slider"></span>
                 </label>
             </div>
             
-            <button class="modal-btn" style="margin-top:30px;" onclick="closeModal('settings-modal')" data-lang-key="btn_close">Chiudi</button>
+            <!-- MODIFICA: Bottone Reset -->
+            <button class="modal-btn" style="background: var(--danger); margin-top: 20px;" onclick="openResetConfirm()" data-lang-key="btn_reset">Reset Dati</button>
+            <button class="modal-btn" style="margin-top:10px; background:transparent; border: 1px solid #555; box-shadow:none; color: white;" onclick="closeSettings()" data-lang-key="btn_close">Chiudi</button>
+        </div>
+    </div>
+
+    <!-- Modal Reset Confirm -->
+    <div id="reset-confirm-modal" class="modal">
+        <div class="modal-content">
+            <h1 class="modal-title" style="color: var(--danger);" data-lang-key="modal_reset_title">Sei Sicuro?</h1>
+            <p data-lang-key="modal_reset_desc" style="margin-bottom:20px; color:#ddd;">Tutti i progressi (livello, monete, record) verranno cancellati per sempre.</p>
+            <div style="display:flex; gap:10px; justify-content:center;">
+                <button class="modal-btn" style="background: transparent; border: 1px solid #555; width:45%; color: white;" onclick="closeModal('reset-confirm-modal')" data-lang-key="btn_cancel">Annulla</button>
+                <button class="modal-btn" style="background: var(--danger); width:45%;" onclick="performFactoryReset()" data-lang-key="btn_yes_reset">Sì, Cancella</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Novità -->
+    <div id="update-modal" class="modal">
+        <div class="modal-content">
+            <h1 class="modal-title" style="font-size: 2rem;" data-lang-key="update_title">Novità v2.9!</h1>
+            <div class="update-feature">
+                <div class="update-title-text" data-lang-key="update_lvl_title">⬆️ Level Up Rapido</div>
+                <div class="update-desc-text" data-lang-key="update_lvl_desc">Il passaggio di livello ora è una notifica e non ferma il gioco!</div>
+            </div>
+             <div class="update-feature">
+                <div class="update-title-text" data-lang-key="update_sound_title">🔊 Suoni</div>
+                <div class="update-desc-text" data-lang-key="update_sound_desc">Ripristinati i click dei tasti!</div>
+            </div>
+            <button class="modal-btn" onclick="closeModal('update-modal')" data-lang-key="btn_close">Fantastico!</button>
+        </div>
+    </div>
+
+    <!-- Modal Daily Reward -->
+    <div id="daily-modal" class="modal">
+        <div class="modal-content">
+            <h1 class="modal-title" data-lang-key="daily_title">Ricompensa Giornaliera</h1>
+            <p data-lang-key="daily_desc">Bentornato! Ecco le tue monete.</p>
+            <div class="daily-coins-anim">💰 150</div>
+            <button class="modal-btn" id="btn-claim-daily" onclick="claimDailyReward()" data-lang-key="btn_claim">Raccogli</button>
         </div>
     </div>
 
 <script>
-    // --- Configurazione e Stato ---
     const BOARD_SIZE = 8;
     const board = Array(BOARD_SIZE).fill().map(() => Array(BOARD_SIZE).fill(null));
+    const APP_VERSION = "2.9"; 
     
-    // TRADUZIONI
+    // TRADUZIONI COMPLETE
     const TRANSLATIONS = {
         it: {
             btn_classic: "Classica",
@@ -1058,6 +1165,7 @@
             label_time: "Tempo",
             label_score: "Punteggio",
             label_record: "Record",
+            label_achievements: "Obiettivi",
             modal_gameover: "Game Over!",
             label_final_score: "Punteggio Finale",
             btn_retry: "Riprova",
@@ -1066,13 +1174,56 @@
             btn_resume: "Riprendi",
             btn_exit: "Esci",
             modal_settings: "Impostazioni",
+            modal_stats: "Statistiche",
             label_language: "Lingua / Language",
             btn_close: "Chiudi",
             opt_sound: "Suoni",
-            opt_haptics: "Vibrazione",
+            opt_perf: "Modalità Performance",
             reason_timeout: "Tempo Scaduto! ⏳",
-            reason_nomoves: "Nessuno spazio per i blocchi! 🧱",
-            reason_generic: "Partita Finita"
+            reason_nomoves: "Nessuno spazio! 🧱",
+            reason_generic: "Partita Finita",
+            update_title: "Novità v2.9",
+            update_lvl_title: "⬆️ Level Up Rapido",
+            update_lvl_desc: "Il level up ora è una notifica e non ferma il gioco!",
+            update_sound_title: "🔊 Suoni",
+            update_sound_desc: "Ripristinati i suoni dei tasti.",
+            daily_title: "Ricompensa Giornaliera",
+            daily_desc: "Bentornato! Ecco un regalo per te.",
+            btn_claim: "Raccogli",
+            daily_wait: "Torna domani! 🕛",
+            // Reset
+            btn_reset: "Reset Dati",
+            modal_reset_title: "Sei Sicuro?",
+            modal_reset_desc: "Tutti i progressi (livello, monete, record) verranno cancellati per sempre.",
+            btn_cancel: "Annulla",
+            btn_yes_reset: "Sì, Cancella Tutto",
+            // Stats
+            stat_total_games: "Partite Totali",
+            stat_level: "Livello",
+            stat_total_lines: "Linee Totali",
+            stat_header_gen: "GENERALE",
+            stat_header_rec: "RECORD",
+            // Cats
+            cat_gen: "Generale",
+            cat_classic: "Classica",
+            cat_time: "A Tempo",
+            cat_exp: "Esperto",
+            // Achievements Titles & Desc
+            ach_novice: "Novizio", ach_desc_novice: "Ottieni 100 punti",
+            ach_survivor: "Sopravvissuto", ach_desc_survivor: "Raggiungi il livello 5",
+            ach_rich: "Riccone", ach_desc_rich: "Accumula 500 monete",
+            ach_lines_expert: "Esperto di Linee", ach_desc_lines_expert: "Pulisci 100 linee totali",
+            ach_quad_clear: "Spazzino", ach_desc_quad_clear: "Pulisci 4+ linee in una volta",
+            ach_combo_master: "Combo Master", ach_desc_combo_master: "Raggiungi una combo x5",
+            ach_bomber: "Bombarolo", ach_desc_bomber: "Usa la Bomba",
+            ach_lucky_hand: "Mano Fortunata", ach_desc_lucky_hand: "Usa il Reroll",
+            ach_time_is_money: "Il Tempo è Denaro", ach_desc_time_is_money: "Fai 500 punti in modalità Tempo",
+            ach_chrononaut: "Signore del Tempo", ach_desc_chrononaut: "Raggiungi 2000 punti in A Tempo",
+            ach_panic_mode: "Panico!", ach_desc_panic_mode: "Pulisci linea con <5 sec rimasti",
+            ach_time_hoarder: "Accumulatore", ach_desc_time_hoarder: "Accumula 80+ secondi",
+            ach_strategist: "Strategista", ach_desc_strategist: "Gioca in modalità Esperto",
+            ach_grand_master: "Gran Maestro", ach_desc_grand_master: "2000 punti in Esperto",
+            ach_purist: "Purista", ach_desc_purist: "500 pt in Esperto senza Power-up"
         },
         en: {
             btn_classic: "Classic",
@@ -1081,6 +1232,7 @@
             label_time: "Time",
             label_score: "Score",
             label_record: "Best",
+            label_achievements: "Achievements",
             modal_gameover: "Game Over!",
             label_final_score: "Final Score",
             btn_retry: "Retry",
@@ -1089,50 +1241,80 @@
             btn_resume: "Resume",
             btn_exit: "Quit",
             modal_settings: "Settings",
+            modal_stats: "Statistics",
             label_language: "Language / Lingua",
             btn_close: "Close",
             opt_sound: "Sounds",
-            opt_haptics: "Haptics",
+            opt_perf: "Performance Mode",
             reason_timeout: "Time's Up! ⏳",
-            reason_nomoves: "No space for blocks! 🧱",
-            reason_generic: "Game Over"
+            reason_nomoves: "No space left! 🧱",
+            reason_generic: "Game Over",
+            update_title: "What's New v2.9",
+            update_lvl_title: "⬆️ Fast Level Up",
+            update_lvl_desc: "Level up is now a notification and doesn't stop the game!",
+            update_sound_title: "🔊 Sounds",
+            update_sound_desc: "Key sounds restored.",
+            daily_title: "Daily Reward",
+            daily_desc: "Welcome back! Here is your gift.",
+            btn_claim: "Claim",
+            daily_wait: "Come back tomorrow! 🕛",
+            // Reset
+            btn_reset: "Reset Data",
+            modal_reset_title: "Are you sure?",
+            modal_reset_desc: "All progress (level, coins, records) will be lost forever.",
+            btn_cancel: "Cancel",
+            btn_yes_reset: "Yes, Delete All",
+            // Stats
+            stat_total_games: "Total Games",
+            stat_level: "Level",
+            stat_total_lines: "Total Lines",
+            stat_header_gen: "GENERAL",
+            stat_header_rec: "RECORDS",
+            // Cats
+            cat_gen: "General",
+            cat_classic: "Classic",
+            cat_time: "Time Mode",
+            cat_exp: "Expert",
+            // Achievements Titles & Desc
+            ach_novice: "Novice", ach_desc_novice: "Score 100 points",
+            ach_survivor: "Survivor", ach_desc_survivor: "Reach Level 5",
+            ach_rich: "Rich", ach_desc_rich: "Collect 500 coins",
+            ach_lines_expert: "Lines Expert", ach_desc_lines_expert: "Clear 100 lines total",
+            ach_quad_clear: "Sweeper", ach_desc_quad_clear: "Clear 4+ lines at once",
+            ach_combo_master: "Combo Master", ach_desc_combo_master: "Reach x5 combo",
+            ach_bomber: "Bomber", ach_desc_bomber: "Use the Bomb",
+            ach_lucky_hand: "Lucky Hand", ach_desc_lucky_hand: "Use Reroll",
+            ach_time_is_money: "Time is Money", ach_desc_time_is_money: "Score 500 in Time Mode",
+            ach_chrononaut: "Time Lord", ach_desc_chrononaut: "Score 2000 in Time Mode",
+            ach_panic_mode: "Panic!", ach_desc_panic_mode: "Clear line with <5s left",
+            ach_time_hoarder: "Hoarder", ach_desc_time_hoarder: "Bank 80+ seconds",
+            ach_strategist: "Strategist", ach_desc_strategist: "Play Expert Mode",
+            ach_grand_master: "Grand Master", ach_desc_grand_master: "Score 2000 in Expert",
+            ach_purist: "Purist", ach_desc_purist: "500 pts Expert no Power-ups"
         }
     };
 
-    // Achievements Definition with Categories (UPDATED WITH 5 HARD OBJECTIVES)
     const ACHIEVEMENTS_DEF = [
-        // Generale
-        { id: 'novice', cat: 'gen', title: 'Novizio', desc: 'Ottieni 100 punti', check: (s) => s.score >= 100 },
-        { id: 'survivor', cat: 'gen', title: 'Sopravvissuto', desc: 'Raggiungi il livello 5', check: (s) => s.level >= 5 },
-        { id: 'rich', cat: 'gen', title: 'Riccone', desc: 'Accumula 500 monete', check: (s) => s.coins >= 500 },
-        { id: 'lines_expert', cat: 'gen', title: 'Esperto di Linee', desc: 'Pulisci 100 linee totali', check: (s, stats) => stats.totalLines >= 100 },
-        { id: 'quad_clear', cat: 'gen', title: 'Spazzino', desc: 'Pulisci 4+ linee in una volta', event: 'clear', check: (lines) => lines >= 4 },
-        { id: 'combo_master', cat: 'gen', title: 'Combo Master', desc: 'Raggiungi una combo x5', event: 'combo', check: (c) => c >= 5 },
-        { id: 'bomber', cat: 'gen', title: 'Bombarolo', desc: 'Usa la Bomba', event: 'powerup_bomb' },
-        { id: 'lucky_hand', cat: 'gen', title: 'Mano Fortunata', desc: 'Usa il Reroll', event: 'powerup_reroll' },
-        
-        // Modalità A Tempo (NUOVI)
-        { id: 'time_is_money', cat: 'time', title: 'Il Tempo è Denaro', desc: 'Fai 500 punti in modalità Tempo', check: (s) => s.mode === 'time' && s.score >= 500 },
-        { id: 'chrononaut', cat: 'time', title: 'Signore del Tempo', desc: 'Raggiungi 2000 punti in modalità A Tempo', check: (s) => s.mode === 'time' && s.score >= 2000 },
-        { id: 'panic_mode', cat: 'time', title: 'Panico!', desc: 'Pulisci una linea con meno di 5 sec rimasti', event: 'time_panic_clear' },
-        { id: 'time_hoarder', cat: 'time', title: 'Accumulatore', desc: 'Accumula più di 80 secondi sul timer', event: 'time_check', check: (t) => t >= 80 },
-
-        // Modalità Esperto (NUOVI)
-        { id: 'strategist', cat: 'exp', title: 'Strategista', desc: 'Gioca in modalità Esperto', check: (s) => s.mode === 'expert' },
-        { id: 'grand_master', cat: 'exp', title: 'Gran Maestro', desc: 'Raggiungi 2000 punti in modalità Esperto', check: (s) => s.mode === 'expert' && s.score >= 2000 },
-        { id: 'purist', cat: 'exp', title: 'Purista', desc: 'Fai 500 punti in Esperto senza usare Power-up', check: (s) => s.mode === 'expert' && s.score >= 500 && !s.hasUsedPowerup }
+        { id: 'novice', cat: 'gen', check: (s) => s.score >= 100 },
+        { id: 'survivor', cat: 'gen', check: (s) => s.level >= 5 },
+        { id: 'rich', cat: 'gen', check: (s) => s.coins >= 500 },
+        { id: 'lines_expert', cat: 'gen', check: (s, stats) => stats.totalLines >= 100 },
+        { id: 'quad_clear', cat: 'gen', event: 'clear', check: (lines) => lines >= 4 },
+        { id: 'combo_master', cat: 'gen', event: 'combo', check: (c) => c >= 5 },
+        { id: 'bomber', cat: 'gen', event: 'powerup_bomb' },
+        { id: 'lucky_hand', cat: 'gen', event: 'powerup_reroll' },
+        { id: 'time_is_money', cat: 'time', check: (s) => s.mode === 'time' && s.score >= 500 },
+        { id: 'chrononaut', cat: 'time', check: (s) => s.mode === 'time' && s.score >= 2000 },
+        { id: 'panic_mode', cat: 'time', event: 'time_panic_clear' },
+        { id: 'time_hoarder', cat: 'time', event: 'time_check', check: (t) => t >= 80 },
+        { id: 'strategist', cat: 'exp', check: (s) => s.mode === 'expert' },
+        { id: 'grand_master', cat: 'exp', check: (s) => s.mode === 'expert' && s.score >= 2000 },
+        { id: 'purist', cat: 'exp', check: (s) => s.mode === 'expert' && s.score >= 500 && !s.hasUsedPowerup }
     ];
-
-    const CATEGORY_NAMES = {
-        gen: "Generale",
-        classic: "Classica",
-        time: "A Tempo",
-        exp: "Esperto"
-    };
 
     let state = {
         score: 0,
-        highScore: 0, // Current mode high score
+        highScore: 0,
         coins: parseInt(localStorage.getItem('blockPuzzleCoins') || 100), 
         level: 1, 
         levelProgress: 0,
@@ -1144,25 +1326,28 @@
         timerInterval: null,
         language: 'it',
         soundEnabled: true,
-        hapticsEnabled: true,
+        hapticsEnabled: true, 
+        performanceMode: false,
         bombMode: false,
-        hasUsedPowerup: false // Track power usage for achievement
+        hasUsedPowerup: false,
+        dailyClaimInProgress: false, 
+        dailyNotificationCooldown: false,
+        pausedBySettings: false
     };
-
-    // Statistiche Persistenti
+    
     let userStats = JSON.parse(localStorage.getItem('bp_stats')) || {
         classicBest: 0,
         timeBest: 0,
         expertBest: 0,
         lastScore: 0,
         totalGames: 0,
-        totalLines: 0
+        totalLines: 0,
+        currentLevel: 1, 
+        currentXP: 0     
     };
 
-    // Obiettivi Sbloccati
     let unlockedAchievements = JSON.parse(localStorage.getItem('bp_achievements')) || [];
 
-    // --- AUDIO SYSTEM (SINTETIZZATORE) ---
     const AudioSys = {
         ctx: null,
         init: function() {
@@ -1171,25 +1356,24 @@
             }
         },
         playTone: function(freq, type, duration, vol=0.1) {
-            if (!state.soundEnabled || !this.ctx) return;
-            if (this.ctx.state === 'suspended') this.ctx.resume();
+            if (!state.soundEnabled) return; 
+            if (!this.ctx) this.init(); 
+            if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+            
+            if(!this.ctx) return; 
 
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
-            
             osc.type = type;
             osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-            
             gain.gain.setValueAtTime(vol, this.ctx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
-
             osc.connect(gain);
             gain.connect(this.ctx.destination);
-            
             osc.start();
             osc.stop(this.ctx.currentTime + duration);
         },
-        playClick: function() { this.playTone(600, 'sine', 0.1, 0.05); },
+        playClick: function() { this.playTone(600, 'sine', 0.1, 0.1); }, 
         playPick: function() { this.playTone(400, 'triangle', 0.1, 0.1); },
         playDrop: function() { this.playTone(200, 'sawtooth', 0.15, 0.1); },
         playPowerup: function() { 
@@ -1222,48 +1406,40 @@
     };
 
     function haptic(ms) {
-        if (state.hapticsEnabled && navigator.vibrate) {
-            navigator.vibrate(ms);
+        if (!state.hapticsEnabled) return;
+        if (navigator.vibrate) navigator.vibrate(ms);
+        if(ms > 50 && !state.performanceMode) {
+             document.body.style.transform = `translate(${Math.random()*2-1}px, ${Math.random()*2-1}px)`;
+             setTimeout(() => document.body.style.transform = 'none', 50);
         }
     }
 
-    // Variabili Drag & Drop
-    let dragData = {
-        active: false,
-        element: null,
-        shape: null,
-        color: null,
-        offsetX: 0,
-        offsetY: 0,
-        gridCache: null 
-    };
+    let dragData = { active: false, element: null, shape: null, color: null, offsetX: 0, offsetY: 0, gridCache: null };
     
-    // Riferimenti DOM
     const DOM = {
         board: document.getElementById('game-board'),
         pieces: document.getElementById('pieces-container'),
         score: document.getElementById('score'),
         highScore: document.getElementById('high-score'),
-        // Modals
         modal: document.getElementById('game-over-modal'),
         pauseModal: document.getElementById('pause-modal'),
         settingsModal: document.getElementById('settings-modal'),
         statsModal: document.getElementById('stats-modal'),
         achievementsModal: document.getElementById('achievements-modal'),
-        
+        updateModal: document.getElementById('update-modal'),
+        dailyModal: document.getElementById('daily-modal'),
+        dailyBadge: document.getElementById('daily-badge'), 
+        newsBadge: document.getElementById('news-badge'),
         finalScore: document.getElementById('final-score'),
         reasonText: document.getElementById('game-over-reason'), 
         menu: document.getElementById('main-menu'),
         timerBox: document.getElementById('timer-box'),
         timerVal: document.getElementById('timer'),
-        // Intro
         introOverlay: document.getElementById('intro-overlay'),
         introText: document.getElementById('intro-text'),
         introSub: document.getElementById('intro-subtext'),
         introBar: document.getElementById('intro-bar'),
-        // Particle Container
         particles: document.getElementById('particles-container'),
-        // UI Stats
         statsRow: document.getElementById('stats-row'),
         powerupsContainer: document.getElementById('powerups-container'),
         coinValue: document.getElementById('coin-value'),
@@ -1275,46 +1451,74 @@
         btnBomb: document.getElementById('btn-bomb'),
         statsList: document.getElementById('stats-list-content'),
         achievementsList: document.getElementById('achievements-list-content'),
-        notifArea: document.getElementById('notification-area')
+        notifArea: document.getElementById('notification-area'),
+        btnClaimDaily: document.getElementById('btn-claim-daily'),
+        chkPerf: document.getElementById('chk-perf')
     };
 
-    // --- SEQUENZA INTRO AVANZATA ---
     window.onload = function() {
         runIntroSequence();
-        
         const savedSound = localStorage.getItem('bp_sound');
-        const savedHaptics = localStorage.getItem('bp_haptics');
+        const savedPerf = localStorage.getItem('bp_perf');
+
         if(savedSound !== null) {
             state.soundEnabled = (savedSound === 'true');
             document.getElementById('chk-sound').checked = state.soundEnabled;
         }
-        if(savedHaptics !== null) {
-            state.hapticsEnabled = (savedHaptics === 'true');
-            document.getElementById('chk-haptics').checked = state.hapticsEnabled;
+        
+        if(savedPerf !== null) {
+            state.performanceMode = (savedPerf === 'true');
+            DOM.chkPerf.checked = state.performanceMode;
+            if(state.performanceMode) document.body.classList.add('performance-mode');
         }
+        
+        state.level = userStats.currentLevel || 1;
+        state.levelProgress = userStats.currentXP || 0;
         updateEconomyUI();
+        checkUpdates();
+        checkDailyBadge();
+
+        document.body.addEventListener('click', function(e) {
+            // Force Init Audio on any interaction
+            if (!AudioSys.ctx) AudioSys.init();
+            if(AudioSys.ctx && AudioSys.ctx.state === 'suspended') AudioSys.ctx.resume();
+            
+            const btn = e.target.closest('button');
+            if(btn && !btn.disabled) {
+                btn.classList.add('btn-click-effect');
+                setTimeout(() => btn.classList.remove('btn-click-effect'), 150);
+                AudioSys.playClick();
+            }
+        });
     };
+
+    function togglePerformance(val) {
+        state.performanceMode = val;
+        localStorage.setItem('bp_perf', val);
+        if(val) {
+            document.body.classList.add('performance-mode');
+        } else {
+            document.body.classList.remove('performance-mode');
+        }
+    }
 
     function runIntroSequence() {
         const phrases = ["Made by Minno", "Forging Blocks...", "Polishing Gold...", "Ultimate Experience"];
         let step = 0;
         setTimeout(() => DOM.introBar.style.width = '100%', 100);
-
         function nextPhrase() {
             if (step >= phrases.length) {
                 DOM.introOverlay.style.opacity = '0';
                 setTimeout(() => {
                     DOM.introOverlay.style.display = 'none';
-                    AudioSys.init(); 
+                    // removed AudioSys.init() from here as it is handled on click
                 }, 800);
                 return;
             }
             DOM.introText.innerText = phrases[step];
             DOM.introText.classList.add('intro-visible');
             DOM.introSub.style.opacity = '1';
-
             if (step === phrases.length - 1) DOM.introText.innerHTML = "Block Puzzle<br>Ultimate Gold";
-
             setTimeout(() => {
                 if (step < phrases.length - 1) {
                     DOM.introText.classList.remove('intro-visible');
@@ -1327,126 +1531,234 @@
         nextPhrase();
     }
 
+    function checkUpdates() {
+        const lastVer = localStorage.getItem('bp_version');
+        if (lastVer !== APP_VERSION) {
+            if(DOM.newsBadge) DOM.newsBadge.classList.add('active');
+        } else {
+            if(DOM.newsBadge) DOM.newsBadge.classList.remove('active');
+        }
+    }
+
+    function checkDailyBadge() {
+        const lastLogin = localStorage.getItem('bp_last_login');
+        const today = new Date().toDateString();
+        if (lastLogin !== today) DOM.dailyBadge.classList.add('active');
+        else DOM.dailyBadge.classList.remove('active');
+    }
+
+    function openUpdates() {
+        DOM.updateModal.classList.add('visible');
+        const lastVer = localStorage.getItem('bp_version');
+        if (lastVer !== APP_VERSION) {
+            localStorage.setItem('bp_version', APP_VERSION);
+            if(DOM.newsBadge) DOM.newsBadge.classList.remove('active');
+        }
+    }
+
+    function openDailyReward() {
+        if (state.dailyNotificationCooldown) return;
+
+        const lastLogin = localStorage.getItem('bp_last_login');
+        const today = new Date().toDateString();
+
+        if (lastLogin !== today) {
+            state.dailyClaimInProgress = false;
+            DOM.btnClaimDaily.disabled = false;
+            DOM.btnClaimDaily.innerText = TRANSLATIONS[state.language].btn_claim;
+            
+            DOM.dailyModal.classList.add('visible');
+            AudioSys.playTone(600, 'sine', 0.2);
+        } else {
+            state.dailyNotificationCooldown = true;
+
+            const now = new Date();
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0,0,0,0);
+            const diff = tomorrow - now;
+            const hrs = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const timeStr = `${hrs}h ${mins}m`;
+
+            showNotification('⏳', 'Attendi...', `${TRANSLATIONS[state.language].daily_wait} (${timeStr})`);
+            AudioSys.playTone(150, 'sawtooth', 0.2); 
+            
+            setTimeout(() => { state.dailyNotificationCooldown = false; }, 3500);
+        }
+    }
+
+    function claimDailyReward() {
+        if (state.dailyClaimInProgress) return;
+        state.dailyClaimInProgress = true;
+        DOM.btnClaimDaily.disabled = true; 
+        DOM.btnClaimDaily.innerText = "✓";
+
+        const today = new Date().toDateString();
+        localStorage.setItem('bp_last_login', today);
+        state.coins += 150;
+        updateEconomyUI();
+        
+        showNotification('💰', 'Daily Bonus', '+150 Monete!');
+        AudioSys.playAchievement();
+        spawnParticles(DOM.coinValue);
+        checkDailyBadge();
+
+        setTimeout(() => {
+            closeModal('daily-modal');
+        }, 600);
+    }
+
+    function openResetConfirm() {
+        DOM.settingsModal.classList.remove('visible'); // Temporarily hide settings
+        document.getElementById('reset-confirm-modal').classList.add('visible');
+    }
+
+    function performFactoryReset() {
+        // Clear all local storage keys related to the game
+        const keys = ['blockPuzzleCoins', 'bp_stats', 'bp_achievements', 'bp_last_login', 'bp_version', 'bp_sound', 'bp_perf'];
+        keys.forEach(k => localStorage.removeItem(k));
+        
+        // Reload page to reset state
+        location.reload();
+    }
+
     const COLORS = ['#FF5733', '#33FF57', '#3357FF', '#F333FF', '#00E5FF', '#FFD700', '#FF8C33'];
 
-    const SHAPES_CLASSIC = [
-        [[1]], [[1,1]], [[1,1,1]], [[1,1,1,1]],
-        [[1],[1]], [[1],[1],[1]], [[1],[1],[1],[1]],
+    const SHAPES_SIMPLE = [
+        [[1]], [[1,1]], [[1],[1]],
         [[1,1],[1,1]], 
-        [[1,0],[1,0],[1,1]], [[1,1],[1,0],[1,0]], [[1,1],[0,1],[0,1]], [[0,1],[0,1],[1,1]],
-        [[1,0,0],[1,1,1]], [[1,1,1],[1,0,0]], [[1,1,1],[0,0,1]], [[0,0,1],[1,1,1]],
-        [[1,1,1],[0,1,0]], [[0,1,0],[1,1,1]], [[1,0],[1,1],[1,0]], [[0,1],[1,1],[0,1]],
-        [[0,1],[1,1],[1,0]], [[1,0],[1,1],[0,1]]
+        [[1,1,1]], [[1],[1],[1]], 
+        [[1,1],[1,0]], [[1,1],[0,1]], [[1,0],[1,1]], [[0,1],[1,1]],
+        [[1,1,1],[1,0,0]], 
+        [[1,1,1],[0,0,1]], 
+        [[1,0],[1,0],[1,1]], 
+        [[0,1],[0,1],[1,1]], 
+        [[0,1,0],[1,1,1]]    
+    ];
+
+    const SHAPES_COMPLEX = [
+        [[1,1,1,1]], [[1],[1],[1],[1]], 
+        [[1,1,1],[0,1,0]], [[0,1,0],[1,1,1]], 
+        [[1,1,1],[1,0,0]], [[1,0,0],[1,1,1]], 
+        [[1,1,0],[0,1,1]], [[0,1,1],[1,1,0]], 
+        [[1,0,0],[1,1,1]], [[0,0,1],[1,1,1]], 
     ];
 
     const SHAPES_EXPERT_ONLY = [
-        [[1,0],[0,1]], [[0,1],[1,0]],
-        [[1,0,0],[0,1,0],[0,0,1]], [[0,0,1],[0,1,0],[1,0,0]],
-        [[1,0,1],[1,1,1]], [[1,1],[1,0],[1,1]], [[1,1,1],[1,0,1]], [[1,1],[0,1],[1,1]],
-        [[0,1,0],[1,1,1],[0,1,0]],
+        [[1,0],[0,1]], [[0,1],[1,0]], 
+        [[1,0,1],[1,1,1]], [[1,1,1],[1,0,1]], 
         [[1,1,1],[1,1,1],[1,1,1]], 
-        [[1,1,1,1,1]], 
-        [[1],[1],[1],[1],[1]],
-        [[1,1,1],[1,0,0],[1,0,0]], [[1,1,1],[0,0,1],[0,0,1]],
-        [[1,0,0],[1,0,0],[1,1,1]], [[0,0,1],[0,0,1],[1,1,1]],
-        [[1,0,1],[0,0,0],[1,0,1]],
+        [[1,1,1,1,1]], [[1],[1],[1],[1],[1]], 
+        [[1,0,1],[0,1,0],[1,0,1]] 
     ];
 
-    // --- Gestione Impostazioni & Modals ---
     function setLanguage(lang) {
         state.language = lang;
-        AudioSys.playClick();
-        
         const texts = TRANSLATIONS[lang];
         document.querySelectorAll('[data-lang-key]').forEach(el => {
             const key = el.getAttribute('data-lang-key');
             if (texts[key]) el.innerText = texts[key];
         });
-
         document.getElementById('btn-lang-it').classList.toggle('active', lang === 'it');
         document.getElementById('btn-lang-en').classList.toggle('active', lang === 'en');
+        // Refresh dynamic lists if open
+        if(DOM.statsModal.classList.contains('visible')) openStats();
+        if(DOM.achievementsModal.classList.contains('visible')) openAchievements();
     }
 
     function toggleSound(val) {
         state.soundEnabled = val;
         localStorage.setItem('bp_sound', val);
-        if(val) AudioSys.playClick();
     }
 
     function toggleHaptics(val) {
         state.hapticsEnabled = val;
         localStorage.setItem('bp_haptics', val);
-        if(val) haptic(50);
+        if(val) haptic(200); 
     }
 
-    function openSettings() { AudioSys.playClick(); DOM.settingsModal.classList.add('visible'); }
-    function closeModal(id) { AudioSys.playClick(); document.getElementById(id).classList.remove('visible'); }
+    function openSettings() { 
+        if (state.isPlaying && !state.isPaused) {
+            togglePause();
+            state.pausedBySettings = true; 
+        } else {
+            state.pausedBySettings = false;
+        }
+        DOM.settingsModal.classList.add('visible'); 
+    }
+    
+    function closeSettings() {
+        DOM.settingsModal.classList.remove('visible');
+        if (state.isPlaying && state.isPaused && state.pausedBySettings) {
+            togglePause();
+            state.pausedBySettings = false;
+        }
+    }
+    
+    function closeModal(id) { document.getElementById(id).classList.remove('visible'); }
 
-    // --- Statistiche & Obiettivi Logic ---
     function openStats() {
-        AudioSys.playClick();
-        // Genera HTML diviso per categorie
+        const t = TRANSLATIONS[state.language];
         let html = `
-            <div class="category-header">Generale</div>
-            <div class="stat-item"><span>Partite Totali</span><span class="stat-val">${userStats.totalGames}</span></div>
-            <div class="stat-item"><span>Linee Totali</span><span class="stat-val">${userStats.totalLines}</span></div>
-            <div class="stat-item"><span>Ultimo Score</span><span class="stat-val">${userStats.lastScore}</span></div>
-            
-            <div class="category-header">Classica</div>
-            <div class="stat-item"><span>Record</span><span class="stat-val">${userStats.classicBest}</span></div>
-            
-            <div class="category-header">A Tempo</div>
-            <div class="stat-item"><span>Record</span><span class="stat-val">${userStats.timeBest}</span></div>
-            
-            <div class="category-header">Esperto</div>
-            <div class="stat-item"><span>Record</span><span class="stat-val">${userStats.expertBest}</span></div>
+            <div class="category-header">${t.stat_header_gen}</div>
+            <div class="stat-item"><span>${t.stat_total_games}</span><span class="stat-val">${userStats.totalGames}</span></div>
+            <div class="stat-item"><span>${t.stat_level}</span><span class="stat-val">${state.level}</span></div>
+            <div class="stat-item"><span>${t.stat_total_lines}</span><span class="stat-val">${userStats.totalLines}</span></div>
+            <div class="category-header">${t.stat_header_rec}</div>
+            <div class="stat-item"><span>${t.cat_classic}</span><span class="stat-val">${userStats.classicBest}</span></div>
+            <div class="stat-item"><span>${t.cat_time}</span><span class="stat-val">${userStats.timeBest}</span></div>
+            <div class="stat-item"><span>${t.cat_exp}</span><span class="stat-val">${userStats.expertBest}</span></div>
         `;
         DOM.statsList.innerHTML = html;
         DOM.statsModal.classList.add('visible');
     }
 
     function openAchievements() {
-        AudioSys.playClick();
-        DOM.achievementsList.innerHTML = '';
-        
-        // Raggruppa per categoria
+        DOM.achievementsList.innerHTML = ''; 
+        const t = TRANSLATIONS[state.language];
         const cats = ['gen', 'classic', 'time', 'exp'];
-        
+        const catTitles = {
+            'gen': t.cat_gen,
+            'classic': t.cat_classic,
+            'time': t.cat_time,
+            'exp': t.cat_exp
+        };
+
         cats.forEach(cat => {
-            // Check if there are items in this category
             const items = ACHIEVEMENTS_DEF.filter(a => a.cat === cat);
             if(items.length === 0) return;
-
-            // Add Header
             const header = document.createElement('div');
             header.className = 'category-header';
-            header.innerText = CATEGORY_NAMES[cat];
+            header.innerText = catTitles[cat];
             DOM.achievementsList.appendChild(header);
-
             items.forEach(ach => {
                 const isUnlocked = unlockedAchievements.includes(ach.id);
+                // Look up translation keys based on ID
+                const title = t[`ach_${ach.id}`];
+                const desc = t[`ach_desc_${ach.id}`];
+                
                 const div = document.createElement('div');
                 div.className = `achievement-item ${isUnlocked ? 'unlocked' : ''}`;
                 div.innerHTML = `
                     <div class="ach-icon">${isUnlocked ? '🏆' : '🔒'}</div>
                     <div class="ach-info">
-                        <div class="ach-title">${ach.title}</div>
-                        <div class="ach-desc">${ach.desc}</div>
+                        <div class="ach-title">${title}</div>
+                        <div class="ach-desc">${desc}</div>
                     </div>
                     <div class="ach-status">${isUnlocked ? '✅' : ''}</div>
                 `;
                 DOM.achievementsList.appendChild(div);
             });
         });
-
         DOM.achievementsModal.classList.add('visible');
     }
 
     function checkAchievements(eventName, eventVal) {
         let changed = false;
+        const t = TRANSLATIONS[state.language];
         ACHIEVEMENTS_DEF.forEach(ach => {
             if (unlockedAchievements.includes(ach.id)) return;
-
             let passed = false;
             if (ach.event) {
                 if (ach.event === eventName) {
@@ -1456,19 +1768,22 @@
             } else if (ach.check) {
                 passed = ach.check(state, userStats);
             }
-
             if (passed) {
                 unlockedAchievements.push(ach.id);
                 localStorage.setItem('bp_achievements', JSON.stringify(unlockedAchievements));
-                showNotification('🏆', 'Obiettivo Sbloccato!', ach.title);
+                // Use translated title for notification
+                showNotification('🏆', t.label_achievements, t[`ach_${ach.id}`]);
                 AudioSys.playAchievement();
                 changed = true;
             }
         });
     }
 
-    // --- Gestione Notifiche (Toast) ---
     function showNotification(icon, title, desc) {
+        if (DOM.notifArea.children.length > 2) {
+            DOM.notifArea.removeChild(DOM.notifArea.firstChild);
+        }
+
         const notif = document.createElement('div');
         notif.className = 'notification-toast';
         notif.innerHTML = `
@@ -1479,16 +1794,12 @@
             </div>
         `;
         DOM.notifArea.appendChild(notif);
-        
-        // Rimuovi dopo l'animazione (3.5s totali nel CSS)
         setTimeout(() => {
             if(notif.parentNode) notif.parentNode.removeChild(notif);
         }, 3500);
     }
 
-    // --- Gestione Menu e Flusso ---
     function showMainMenu() {
-        AudioSys.playClick();
         stopTimer();
         DOM.modal.classList.remove('visible');
         DOM.pauseModal.classList.remove('visible');
@@ -1501,17 +1812,13 @@
 
     function startGame(mode) {
         AudioSys.init();
-        AudioSys.playClick();
-
         state.mode = mode;
-        state.score = 0;
-        state.level = 1;
-        state.levelProgress = 0;
+        state.score = 0; 
         state.combo = 0;
         state.isPlaying = true;
         state.isPaused = false;
         state.bombMode = false;
-        state.hasUsedPowerup = false; // Reset powerup usage
+        state.hasUsedPowerup = false;
         
         if(mode === 'classic') state.highScore = userStats.classicBest;
         else if(mode === 'time') state.highScore = userStats.timeBest;
@@ -1524,23 +1831,18 @@
         DOM.board.classList.remove('bomb-active');
         DOM.btnBomb.classList.remove('active-mode');
 
-        if (mode === 'expert') {
-            DOM.btnReroll.classList.add('disabled');
-        } else {
-            DOM.btnReroll.classList.remove('disabled');
-        }
+        if (mode === 'expert') DOM.btnReroll.classList.add('disabled');
+        else DOM.btnReroll.classList.remove('disabled');
 
         if (mode === 'time') {
             state.timeLeft = 60;
             DOM.timerBox.classList.add('active');
             updateTimerDisplay();
             startTimer();
-        } else {
-            DOM.timerBox.classList.remove('active');
-        }
+        } else DOM.timerBox.classList.remove('active');
 
         updateScore(0);
-        updateLevelUI();
+        updateLevelUI(); 
         updateEconomyUI();
         createBoardGrid();
         for(let r=0; r<BOARD_SIZE; r++) board[r].fill(null);
@@ -1550,16 +1852,12 @@
         DOM.menu.classList.add('hidden');
         DOM.modal.classList.remove('visible');
         DOM.pauseModal.classList.remove('visible');
-        
         checkAchievements('start');
     }
 
-    function restartGame() {
-        startGame(state.mode);
-    }
+    function restartGame() { startGame(state.mode); }
 
     function togglePause() {
-        AudioSys.playClick();
         if (!state.isPlaying) return;
         state.isPaused = !state.isPaused;
         
@@ -1585,26 +1883,24 @@
         }
     }
 
-    // --- LOGICA ECONOMIA E POWERUPS ---
     function updateEconomyUI() {
         DOM.coinValue.innerText = state.coins;
         localStorage.setItem('blockPuzzleCoins', state.coins);
         
-        DOM.btnRotate.classList.toggle('affordable', state.coins >= 20);
+        DOM.btnRotate.classList.toggle('affordable', state.coins >= 50);
         DOM.btnReroll.classList.toggle('affordable', state.coins >= 50 && state.mode !== 'expert');
         DOM.btnBomb.classList.toggle('affordable', state.coins >= 50);
-        
         checkAchievements('coins');
     }
 
     function usePowerup(type) {
         if(!state.isPlaying || state.isPaused) return;
-
-        state.hasUsedPowerup = true; // Mark usage
+        state.hasUsedPowerup = true;
+        const COST = 50; 
 
         if (type === 'rotate') {
-            if (state.coins >= 20) {
-                state.coins -= 20;
+            if (state.coins >= COST) {
+                state.coins -= COST;
                 AudioSys.playPowerup();
                 rotateAllPieces();
                 updateEconomyUI();
@@ -1613,8 +1909,8 @@
 
         } else if (type === 'reroll') {
             if (state.mode === 'expert') return; 
-            if (state.coins >= 50) {
-                state.coins -= 50;
+            if (state.coins >= COST) {
+                state.coins -= COST;
                 AudioSys.playPowerup();
                 spawnPieces(); 
                 updateEconomyUI();
@@ -1623,7 +1919,7 @@
             } else failPowerup(DOM.btnReroll);
 
         } else if (type === 'bomb') {
-            if (state.coins >= 50) {
+            if (state.coins >= COST) {
                 if (state.bombMode) {
                     state.bombMode = false;
                     DOM.board.classList.remove('bomb-active');
@@ -1651,40 +1947,33 @@
             if (piece) {
                 const oldShape = JSON.parse(piece.dataset.shape);
                 const color = piece.dataset.color;
-                
                 const rows = oldShape.length;
                 const cols = oldShape[0].length;
                 let newShape = Array(cols).fill().map(() => Array(rows).fill(0));
-                
                 for(let i=0; i<rows; i++) {
                     for(let j=0; j<cols; j++) {
                         newShape[j][rows-1-i] = oldShape[i][j];
                     }
                 }
-                
                 w.innerHTML = '';
                 const newEl = createPieceElement(newShape, color);
                 w.appendChild(newEl);
                 newEl.addEventListener('pointerdown', startDrag);
-                
                 newEl.style.transform = "rotate(90deg) scale(0)";
                 setTimeout(()=> newEl.style.transform = "rotate(0deg) scale(1)", 50);
             }
         });
+        checkGameOverCondition();
     }
 
     function handleBoardClick(e) {
         if (!state.bombMode) return;
-        
         const cell = e.target.closest('.cell');
         if (!cell) return;
-
         const r = parseInt(cell.dataset.r);
         const c = parseInt(cell.dataset.c);
-
         AudioSys.playExplosion();
         haptic(100);
-        
         for (let i = -1; i <= 1; i++) {
             for (let j = -1; j <= 1; j++) {
                 const tr = r + i;
@@ -1701,7 +1990,6 @@
                 }
             }
         }
-        
         setTimeout(() => {
             updateBoardUI();
             document.querySelectorAll('.clearing').forEach(el => el.classList.remove('clearing'));
@@ -1715,17 +2003,13 @@
         checkAchievements('powerup_bomb');
     }
 
-    // --- Timer ---
     function startTimer() {
         stopTimer();
         state.timerInterval = setInterval(() => {
             if (state.isPaused) return;
             state.timeLeft--;
             updateTimerDisplay();
-            
-            // Check Achievement: Time Hoarder (Over 80s)
             checkAchievements('time_check', state.timeLeft);
-            
             if (state.timeLeft <= 0) {
                 stopTimer();
                 triggerGameOver('timeout');
@@ -1733,9 +2017,7 @@
         }, 1000);
     }
 
-    function stopTimer() {
-        if (state.timerInterval) clearInterval(state.timerInterval);
-    }
+    function stopTimer() { if (state.timerInterval) clearInterval(state.timerInterval); }
 
     function updateTimerDisplay() {
         DOM.timerVal.innerText = state.timeLeft;
@@ -1747,7 +2029,6 @@
         if (state.mode !== 'time') return;
         state.timeLeft += amount;
         updateTimerDisplay();
-        
         const timerEl = DOM.timerVal;
         timerEl.style.color = '#33FF57';
         timerEl.style.transform = "scale(1.5)";
@@ -1757,23 +2038,24 @@
         }, 400);
     }
 
-    // --- Gestione Pezzi ---
     function spawnPieces() {
         DOM.pieces.innerHTML = '';
-        
-        let currentPool = [...SHAPES_CLASSIC]; 
-        if (state.mode === 'expert') {
-            currentPool = currentPool.concat(SHAPES_EXPERT_ONLY);
-        }
-
         let selectedShapes = [];
         let attempts = 0;
-        
         while(selectedShapes.length < 3 && attempts < 100) {
-            let randIdx = Math.floor(Math.random() * currentPool.length);
-            let candidateShape = currentPool[randIdx];
+            let pool;
+            if (state.mode === 'expert') {
+                const r = Math.random();
+                if (r < 0.4) pool = SHAPES_SIMPLE;
+                else if (r < 0.8) pool = SHAPES_COMPLEX;
+                else pool = SHAPES_EXPERT_ONLY;
+            } else {
+                if (Math.random() < 0.75) pool = SHAPES_SIMPLE;
+                else pool = SHAPES_COMPLEX;
+            }
+            let randIdx = Math.floor(Math.random() * pool.length);
+            let candidateShape = pool[randIdx];
             let isDuplicate = false;
-            
             for(let s of selectedShapes) {
                 if(JSON.stringify(s) === JSON.stringify(candidateShape)) {
                     isDuplicate = true;
@@ -1783,9 +2065,8 @@
             if(!isDuplicate) selectedShapes.push(candidateShape);
             attempts++;
         }
-
         selectedShapes.forEach(shape => createPieceWrapper(shape));
-        checkGameOverCondition();
+        setTimeout(checkGameOverCondition, 100);
     }
 
     function createPieceWrapper(shape) {
@@ -1805,10 +2086,8 @@
         el.className = 'draggable-piece';
         el.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
         el.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-        
         el.dataset.shape = JSON.stringify(shape);
         el.dataset.color = color;
-
         shape.forEach(row => {
             row.forEach(val => {
                 const cell = document.createElement('div');
@@ -1816,20 +2095,16 @@
                 if (val) {
                     cell.style.backgroundColor = color;
                     cell.style.boxShadow = "inset 0 1px 3px rgba(255,255,255,0.4)";
-                } else {
-                    cell.style.opacity = 0;
-                }
+                } else cell.style.opacity = 0;
                 el.appendChild(cell);
             });
         });
         return el;
     }
 
-    // --- Logica Drag & Drop ---
     function startDrag(e) {
         if (state.isPaused || state.bombMode) return;
         e.preventDefault();
-        
         AudioSys.playPick();
         haptic(20);
 
@@ -1841,6 +2116,7 @@
         dragData.shape = JSON.parse(piece.dataset.shape);
         dragData.color = piece.dataset.color;
         
+        DOM.board.classList.add('board-pulse');
         cacheGridPositions();
 
         dragData.offsetX = e.clientX - rect.left;
@@ -1873,7 +2149,6 @@
                 height: rect.height
             };
         });
-        
         if(dragData.gridCache.length > 0) {
             dragData.cellW = dragData.gridCache[0].width;
             dragData.cellH = dragData.gridCache[0].height;
@@ -1883,10 +2158,8 @@
     function movePiece(clientX, clientY) {
         const isTouch = navigator.maxTouchPoints > 0;
         const liftY = isTouch ? 80 : 20; 
-        
         const x = clientX - dragData.offsetX;
         const y = clientY - dragData.offsetY - liftY;
-        
         dragData.element.style.left = x + 'px';
         dragData.element.style.top = y + 'px';
     }
@@ -1900,13 +2173,11 @@
 
     function endDrag(e) {
         if (!dragData.active) return;
-        
         document.removeEventListener('pointermove', onDrag);
         document.removeEventListener('pointerup', endDrag);
-
+        DOM.board.classList.remove('board-pulse');
         const bestPos = findBestGridPositionV2();
         let placed = false;
-
         if (bestPos) {
              if (canPlace(dragData.shape, bestPos.r, bestPos.c)) {
                  placePiece(dragData.shape, bestPos.r, bestPos.c, dragData.color);
@@ -1915,7 +2186,6 @@
                  handleTurnEnd();
              }
         }
-
         if (!placed) {
             dragData.element.style.position = 'static';
             dragData.element.style.transform = 'none';
@@ -1923,7 +2193,6 @@
             dragData.element.style.height = '';
             dragData.element.style.zIndex = '';
         }
-
         clearPreview();
         dragData.active = false;
         dragData.element = null;
@@ -1932,18 +2201,15 @@
 
     function findBestGridPositionV2() {
         if (!dragData.element || !dragData.gridCache) return null;
-
         const shape = dragData.shape;
         const sRows = shape.length;
         const sCols = shape[0].length;
         const cache = dragData.gridCache;
         const cellW = dragData.cellW;
         const cellH = dragData.cellH;
-
         const pRect = dragData.element.getBoundingClientRect();
         const pCenterX = pRect.left + pRect.width / 2;
         const pCenterY = pRect.top + pRect.height / 2;
-
         let bestR = -1;
         let bestC = -1;
         let minDistance = Infinity;
@@ -1963,21 +2229,18 @@
                 }
             }
         }
-
-        if (minDistance < threshold && bestR !== -1) {
-            return { r: bestR, c: bestC };
-        }
+        if (minDistance < threshold && bestR !== -1) return { r: bestR, c: bestC };
         return null;
     }
 
     function canPlace(shape, r, c) {
-        for (let i = 0; i < shape.length; i++) {
-            for (let j = 0; j < shape[i].length; j++) {
+        const rows = shape.length;
+        const cols = shape[0].length;
+        if (r < 0 || r + rows > BOARD_SIZE || c < 0 || c + cols > BOARD_SIZE) return false;
+        for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < cols; j++) {
                 if (shape[i][j] === 1) {
-                    const checkR = r + i;
-                    const checkC = c + j;
-                    if (checkR < 0 || checkR >= BOARD_SIZE || checkC < 0 || checkC >= BOARD_SIZE) return false;
-                    if (board[checkR][checkC] !== null) return false;
+                    if (board[r + i][c + j] !== null) return false;
                 }
             }
         }
@@ -1987,12 +2250,14 @@
     function placePiece(shape, r, c, color) {
         AudioSys.playDrop();
         haptic(40);
-        
+        const centerR = Math.floor(r + shape.length/2);
+        const centerC = Math.floor(c + shape[0].length/2);
+        const targetCell = document.querySelector(`.cell[data-r="${centerR}"][data-c="${centerC}"]`);
+        if(targetCell) spawnParticles(targetCell);
+
         for (let i = 0; i < shape.length; i++) {
             for (let j = 0; j < shape[i].length; j++) {
-                if (shape[i][j] === 1) {
-                    board[r + i][c + j] = color;
-                }
+                if (shape[i][j] === 1) board[r + i][c + j] = color;
             }
         }
         updateBoardUI();
@@ -2004,7 +2269,6 @@
             const r = parseInt(cell.dataset.r);
             const c = parseInt(cell.dataset.c);
             const color = board[r][c];
-            
             cell.style.backgroundColor = color ? color : '';
             if(color) cell.classList.add('filled');
             else cell.classList.remove('filled');
@@ -2026,24 +2290,18 @@
         }
     }
 
-    function clearPreview() {
-        document.querySelectorAll('.preview').forEach(el => el.classList.remove('preview'));
-    }
+    function clearPreview() { document.querySelectorAll('.preview').forEach(el => el.classList.remove('preview')); }
 
     function handleTurnEnd() {
         const linesCleared = checkLinesAndScore();
-        
         if (linesCleared === 0) {
             state.combo = 0;
             DOM.comboDisplay.style.opacity = '0';
         }
-
         if (DOM.pieces.children.length === 0 || 
            Array.from(DOM.pieces.children).every(c => c.children.length === 0)) {
             spawnPieces();
-        } else {
-            checkGameOverCondition();
-        }
+        } else checkGameOverCondition();
     }
 
     function checkLinesAndScore() {
@@ -2093,9 +2351,7 @@
                 DOM.comboDisplay.style.opacity = '1';
                 AudioSys.playCombo(state.combo);
                 checkAchievements('combo', state.combo);
-            } else if (lines > 1) {
-                showFloatingText(`MULTI x${lines}!`);
-            }
+            } else if (lines > 1) showFloatingText(`MULTI x${lines}!`);
             
             if (lines >= 4) checkAchievements('clear', lines);
             userStats.totalLines += lines;
@@ -2103,7 +2359,6 @@
             let earnedCoins = (lines * 2); 
             if (lines > 1) earnedCoins += lines * 2;
             if (state.combo > 1) earnedCoins += state.combo * 2;
-            
             state.coins += earnedCoins;
             updateEconomyUI();
 
@@ -2116,63 +2371,62 @@
                 let points = lines * 10;
                 if (lines > 1) points += (lines * 10);
                 if (lines >= 3) points += 50; 
-                
                 points *= comboMult;
 
                 if (state.mode === 'time') {
-                    // Check Panic Mode Achievement (clear with < 5s)
-                    if (state.timeLeft < 5) {
-                        checkAchievements('time_panic_clear');
-                    }
+                    if (state.timeLeft < 5) checkAchievements('time_panic_clear');
                     addTime(lines * 5); 
                 }
 
                 updateScore(state.score + points);
-                updateLevelUI(); 
+                updateLevelUI(points); 
                 updateBoardUI();
                 
                 document.querySelectorAll('.clearing').forEach(el => el.classList.remove('clearing'));
             }, 400); 
         }
-        
         return lines;
     }
 
-    function updateLevelUI() {
-        const xpNeeded = state.level * 200;
-        state.levelProgress = state.score % xpNeeded;
+    function updateLevelUI(pointsGained = 0) {
+        state.levelProgress += pointsGained;
+        const xpNeeded = 200;
         
-        const currentLevelCalc = Math.floor(state.score / 200) + 1;
-        if(currentLevelCalc > state.level) {
-            state.level = currentLevelCalc;
-            showNotification('⬆️', 'Level Up!', `Raggiunto livello ${state.level}`);
+        while(state.levelProgress >= xpNeeded) {
+            state.level++;
+            state.levelProgress -= xpNeeded;
+            
+            // MODIFICA: Uso notifica invece di modal che blocca il gioco
+            showNotification('⬆️', 'LEVEL UP!', `Level ${state.level} (+50 🪙)`);
+            
             AudioSys.playTone(800, 'square', 0.4, 0.2);
-            // REWARD: 100 COINS
-            state.coins += 100; 
-            updateEconomyUI();
+            state.coins += 50; 
         }
-        
+
+        userStats.currentLevel = state.level;
+        userStats.currentXP = state.levelProgress;
+        localStorage.setItem('bp_stats', JSON.stringify(userStats));
+        updateEconomyUI();
         checkAchievements('level', state.level);
 
         DOM.levelLabel.innerText = `Lvl ${state.level}`;
-        const pct = Math.min(100, (state.score - ((state.level-1)*200)) / 200 * 100);
+        const pct = Math.min(100, (state.levelProgress / xpNeeded) * 100);
         DOM.levelBar.style.width = pct + '%';
     }
 
     function spawnParticles(element) {
+        if(state.performanceMode) return;
+
         const rect = element.getBoundingClientRect();
         const centerX = rect.left + rect.width/2;
         const centerY = rect.top + rect.height/2;
-        
         for(let i=0; i<8; i++) {
             const p = document.createElement('div');
             p.classList.add('particle');
-            
             const angle = Math.random() * Math.PI * 2;
             const velocity = 50 + Math.random() * 100;
             const tx = Math.cos(angle) * velocity + 'px';
             const ty = Math.sin(angle) * velocity + 'px';
-            
             p.style.setProperty('--tx', tx);
             p.style.setProperty('--ty', ty);
             p.style.left = centerX + 'px';
@@ -2180,7 +2434,6 @@
             p.style.width = (4 + Math.random() * 6) + 'px';
             p.style.height = p.style.width;
             p.style.backgroundColor = COLORS[Math.floor(Math.random() * COLORS.length)];
-            
             DOM.particles.appendChild(p);
             setTimeout(() => p.remove(), 800);
         }
@@ -2194,7 +2447,7 @@
         el.style.top = (rect.top + rect.height / 2 - 20) + 'px';
         el.style.left = rect.left + 'px';
         document.body.appendChild(el);
-        setTimeout(() => el.remove(), 1000);
+        setTimeout(() => el.remove(), state.performanceMode ? 500 : 1000);
     }
 
     function updateScore(val) {
@@ -2208,15 +2461,18 @@
     }
 
     function checkGameOverCondition() {
+        if (!state.isPlaying || state.isPaused) return;
         setTimeout(() => {
-            const remaining = document.querySelectorAll('.piece-wrapper .draggable-piece');
-            if (remaining.length === 0) return;
-
+            const wrappers = document.querySelectorAll('.piece-wrapper');
+            let hasPieces = false;
             let canMove = false;
-            remaining.forEach(piece => {
-                if (canMove) return;
+            for (let w of wrappers) {
+                const piece = w.querySelector('.draggable-piece');
+                if (!piece) continue; 
+                hasPieces = true;
                 const shape = JSON.parse(piece.dataset.shape);
                 for (let r = 0; r < BOARD_SIZE; r++) {
+                    if (canMove) break;
                     for (let c = 0; c < BOARD_SIZE; c++) {
                         if (canPlace(shape, r, c)) {
                             canMove = true;
@@ -2224,15 +2480,10 @@
                         }
                     }
                 }
-            });
-
-            if (!canMove) {
-                // Se ha abbastanza soldi per reroll e NON è esperto, o ha la bomba, aspetta un attimo
-                // Ma per semplicità triggeriamo subito il game over se non ha mosse legali con i pezzi attuali
-                // L'utente dovrebbe usare i powerup PRIMA di rimanere bloccato, oppure implementare una logica "Last Chance"
-                triggerGameOver('nomoves'); 
+                if (canMove) break;
             }
-        }, 100);
+            if (hasPieces && !canMove) triggerGameOver('nomoves'); 
+        }, 300);
     }
 
     function triggerGameOver(reason) {
@@ -2243,7 +2494,6 @@
         state.bombMode = false;
         DOM.board.classList.remove('bomb-active');
         
-        // Save Stats
         userStats.lastScore = state.score;
         userStats.totalGames++;
         if(state.mode === 'classic' && state.score > userStats.classicBest) userStats.classicBest = state.score;
